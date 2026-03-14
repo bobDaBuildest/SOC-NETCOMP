@@ -84,15 +84,16 @@
 
 <!-- KPI Bar -->
 <div class="kpi-bar" id="kpi-bar">
-  <div class="kpi"><div class="k-label">Total Events</div><div class="k-value" id="k-total">—</div></div>
-  <div class="kpi danger"><div class="k-label">Attack Events</div><div class="k-value" id="k-attacks">—</div></div>
-  <div class="kpi warn"><div class="k-label">Anomaly Rate</div><div class="k-value" id="k-rate">—</div></div>
-  <div class="kpi danger"><div class="k-label">Critical Events</div><div class="k-value" id="k-critical">—</div></div>
-  <div class="kpi good"><div class="k-label">Blocked</div><div class="k-value" id="k-blocked">—</div></div>
+  <div class="kpi"><div class="k-label">Total Events</div><div class="k-value" id="kpi-total-events">—</div></div>
+  <div class="kpi danger"><div class="k-label">Attack Events</div><div class="k-value" id="kpi-attack-events">—</div></div>
+  <div class="kpi warn"><div class="k-label">Anomaly Rate</div><div class="k-value" id="kpi-anomaly-rate">—</div></div>
+  <div class="kpi danger"><div class="k-label">Critical Events</div><div class="k-value" id="kpi-critical-events">—</div></div>
+  <div class="kpi good"><div class="k-label">Blocked</div><div class="k-value" id="kpi-blocked">—</div></div>
   <div class="kpi"><div class="k-label">MTTD</div><div class="k-value" id="k-mttd">—</div></div>
   <div class="kpi"><div class="k-label">MTTR</div><div class="k-value" id="k-mttr">—</div></div>
-  <div class="kpi"><div class="k-label">Active Devices</div><div class="k-value" id="k-devices">—</div></div>
+  <div class="kpi"><div class="k-label">Active Devices</div><div class="k-value" id="kpi-active-devices">—</div></div>
 </div>
+<div style="padding:8px 24px; font-size:0.85rem; color:#c9d1d9;" id="firewall-status">Firewall status: loading…</div>
 
 <div class="layout">
 
@@ -157,8 +158,8 @@
 
 <script>
   // When running under docker compose, nginx proxies /api/* to the backend service.
-  // Using a relative base makes the UI work both locally and in container.
-  const API = "";
+  // If opened as a file (file://), fall back to localhost:
+  const API = window.location.protocol === "file:" ? "http://localhost:8000" : "";
   let allEvents = [];
 
   // ── Load KPIs ──────────────────────────────────────────────────────────────
@@ -166,19 +167,101 @@
     try {
       const r = await fetch(`${API}/api/kpis`);
       const d = await r.json();
-      document.getElementById("k-total").textContent    = d.total_events;
-      document.getElementById("k-attacks").textContent  = d.attack_events;
-      document.getElementById("k-rate").textContent     = d.anomaly_rate + "%";
-      document.getElementById("k-critical").textContent = d.critical_events;
-      document.getElementById("k-blocked").textContent  = d.blocked_attacks;
+      document.getElementById("kpi-total-events").textContent    = d.total_events;
+      document.getElementById("kpi-attack-events").textContent  = d.attack_events;
+      document.getElementById("kpi-anomaly-rate").textContent     = d.anomaly_rate + "%";
+      document.getElementById("kpi-critical-events").textContent = d.critical_events;
+      document.getElementById("kpi-blocked").textContent  = d.blocked_attacks;
       document.getElementById("k-mttd").textContent     = d.mttd_minutes + "m";
       document.getElementById("k-mttr").textContent     = d.mttr_minutes + "m";
-      document.getElementById("k-devices").textContent  = d.active_devices;
+      document.getElementById("kpi-active-devices").textContent  = d.active_devices;
       document.getElementById("last-update").textContent = "Updated: " + new Date(d.last_updated).toLocaleTimeString();
     } catch(e) {
       document.getElementById("last-update").textContent = "⚠️ Backend offline";
     }
   }
+
+  async function loadFirewalls() {
+    try {
+      const r = await fetch(`${API}/api/firewalls`);
+      const d = await r.json();
+      const status = document.getElementById("firewall-status");
+      if (!d.active_firewalls?.length) {
+        status.textContent = "Firewall status: none active";
+        return;
+      }
+      const active = d.active_firewalls.join(", ");
+      const blocked = (d.blocked_ips || []).length;
+      status.textContent = `Firewall(s) active: ${active} (blocking ${blocked} IP${blocked === 1 ? "" : "s"})`;
+    } catch (e) {
+      document.getElementById("firewall-status").textContent = "Firewall status: unable to reach backend";
+    }
+  }
+
+  // ── Update KPIs from /api/stats ────────────────────────────────────────────
+  async function updateKPIs() {
+    try {
+      const res = await fetch(`${API}/api/stats`);
+      const data = await res.json();
+      document.getElementById("kpi-total-events").innerText = data.total_events;
+      document.getElementById("kpi-attack-events").innerText = data.attack_events;
+      document.getElementById("kpi-anomaly-rate").innerText = (data.anomaly_rate * 100).toFixed(1) + "%";
+      document.getElementById("kpi-critical-events").innerText = data.critical_events;
+      document.getElementById("kpi-blocked").innerText = data.total_blocked;
+      document.getElementById("kpi-active-devices").innerText = data.active_devices;
+      console.log("KPIs refreshed");
+    } catch (err) {
+      console.error("Error refreshing KPIs:", err);
+      const lastUpdate = document.getElementById("last-update");
+      if (lastUpdate) {
+        lastUpdate.textContent = "⚠️ Backend offline";
+      }
+    }
+  }
+
+  function applyKpisFromAiResponse(text) {
+    // Normalize text so small formatting differences (bold, markdown, extra spaces) don't break parsing.
+    const normalized = text
+      .replace(/\*|`|_/g, "")            // strip bold/markdown markers
+      .replace(/\s+/g, " ")              // collapse whitespace
+      .trim();
+
+    const patterns = {
+      total_events: /\btotal\s+events\b\s*[:\-–]?\s*(\d+)/i,
+      attack_events: /\battack\s+events\b\s*[:\-–]?\s*(\d+)/i,
+      critical_events: /\b(?:critical\s*\/\s*high|critical\s+high)\s+events\b\s*[:\-–]?\s*(\d+)/i,
+      total_blocked: /\bblocked\s+(?:attacks|events)\b\s*[:\-–]?\s*(\d+)/i,
+      active_devices: /\bactive\s+devices\b\s*[:\-–]?\s*(\d+)/i,
+      anomaly_rate: /\banomaly\s+rate\b\s*[:\-–]?\s*([0-9]+(?:\.[0-9]+)?)\s*%/i,
+    };
+
+    for (const [key, regex] of Object.entries(patterns)) {
+      const match = normalized.match(regex);
+      if (!match) continue;
+      const value = match[1];
+      switch (key) {
+        case "anomaly_rate":
+          document.getElementById("kpi-anomaly-rate").innerText = `${parseFloat(value).toFixed(1)}%`;
+          break;
+        case "total_events":
+          document.getElementById("kpi-total-events").innerText = value;
+          break;
+        case "attack_events":
+          document.getElementById("kpi-attack-events").innerText = value;
+          break;
+        case "critical_events":
+          document.getElementById("kpi-critical-events").innerText = value;
+          break;
+        case "total_blocked":
+          document.getElementById("kpi-blocked").innerText = value;
+          break;
+        case "active_devices":
+          document.getElementById("kpi-active-devices").innerText = value;
+          break;
+      }
+    }
+  }
+
 
   // ── Load Events ────────────────────────────────────────────────────────────
   async function loadEvents() {
@@ -255,8 +338,21 @@
       const d = await r.json();
       loadingDiv.remove();
       addMessage(d.response, "bot");
+      applyKpisFromAiResponse(d.response);
+
+      // If backend returned fresh stats with the AI response, use them immediately.
+      if (d.stats) {
+        document.getElementById("kpi-total-events").innerText = d.stats.total_events;
+        document.getElementById("kpi-attack-events").innerText = d.stats.attack_events;
+        document.getElementById("kpi-anomaly-rate").innerText = (d.stats.anomaly_rate * 100).toFixed(1) + "%";
+        document.getElementById("kpi-critical-events").innerText = d.stats.critical_events;
+        document.getElementById("kpi-blocked").innerText = d.stats.total_blocked;
+        document.getElementById("kpi-active-devices").innerText = d.stats.active_devices;
+      }
+
       loadKPIs();
       loadEvents();
+      await updateKPIs();  // Refresh KPIs after AI action
     } catch(e) {
       loadingDiv.remove();
       addMessage("⚠️ Cannot connect to backend. Make sure python main.py is running.", "bot");
@@ -291,7 +387,9 @@
   // ── Init ───────────────────────────────────────────────────────────────────
   loadKPIs();
   loadEvents();
-  setInterval(() => { loadKPIs(); loadEvents(); }, 30000); // Auto-refresh every 30s
+  loadFirewalls();
+  setInterval(() => { loadKPIs(); loadEvents(); loadFirewalls(); }, 30000); // Auto-refresh every 30s
+  setInterval(updateKPIs, 3000); // Update KPIs every 3s
 </script>
 </body>
 </html>
