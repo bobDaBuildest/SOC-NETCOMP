@@ -156,7 +156,9 @@
 </div>
 
 <script>
-  const API = "http://localhost:8000";
+  // When running under docker compose, nginx proxies /api/* to the backend service.
+  // Using a relative base makes the UI work both locally and in container.
+  const API = "";
   let allEvents = [];
 
   // ── Load KPIs ──────────────────────────────────────────────────────────────

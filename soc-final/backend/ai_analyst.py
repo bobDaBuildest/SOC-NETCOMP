@@ -1,7 +1,10 @@
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+# Load environment variables from the repository root .env (central config)
+_root_env = Path(__file__).resolve().parents[1] / ".env"
+load_dotenv(_root_env)
 
 
 class AIAnalyst:
