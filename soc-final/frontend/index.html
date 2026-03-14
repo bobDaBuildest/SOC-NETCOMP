@@ -84,14 +84,14 @@
 
 <!-- KPI Bar -->
 <div class="kpi-bar" id="kpi-bar">
-  <div class="kpi"><div class="k-label">Total Events</div><div class="k-value" id="k-total">—</div></div>
-  <div class="kpi danger"><div class="k-label">Attack Events</div><div class="k-value" id="k-attacks">—</div></div>
-  <div class="kpi warn"><div class="k-label">Anomaly Rate</div><div class="k-value" id="k-rate">—</div></div>
-  <div class="kpi danger"><div class="k-label">Critical Events</div><div class="k-value" id="k-critical">—</div></div>
-  <div class="kpi good"><div class="k-label">Blocked</div><div class="k-value" id="k-blocked">—</div></div>
+  <div class="kpi"><div class="k-label">Total Events</div><div class="k-value" id="kpi-total-events">—</div></div>
+  <div class="kpi danger"><div class="k-label">Attack Events</div><div class="k-value" id="kpi-attack-events">—</div></div>
+  <div class="kpi warn"><div class="k-label">Anomaly Rate</div><div class="k-value" id="kpi-anomaly-rate">—</div></div>
+  <div class="kpi danger"><div class="k-label">Critical Events</div><div class="k-value" id="kpi-critical-events">—</div></div>
+  <div class="kpi good"><div class="k-label">Blocked</div><div class="k-value" id="kpi-blocked">—</div></div>
   <div class="kpi"><div class="k-label">MTTD</div><div class="k-value" id="k-mttd">—</div></div>
   <div class="kpi"><div class="k-label">MTTR</div><div class="k-value" id="k-mttr">—</div></div>
-  <div class="kpi"><div class="k-label">Active Devices</div><div class="k-value" id="k-devices">—</div></div>
+  <div class="kpi"><div class="k-label">Active Devices</div><div class="k-value" id="kpi-active-devices">—</div></div>
 </div>
 
 <div class="layout">
@@ -166,17 +166,34 @@
     try {
       const r = await fetch(`${API}/api/kpis`);
       const d = await r.json();
-      document.getElementById("k-total").textContent    = d.total_events;
-      document.getElementById("k-attacks").textContent  = d.attack_events;
-      document.getElementById("k-rate").textContent     = d.anomaly_rate + "%";
-      document.getElementById("k-critical").textContent = d.critical_events;
-      document.getElementById("k-blocked").textContent  = d.blocked_attacks;
+      document.getElementById("kpi-total-events").textContent    = d.total_events;
+      document.getElementById("kpi-attack-events").textContent  = d.attack_events;
+      document.getElementById("kpi-anomaly-rate").textContent     = d.anomaly_rate + "%";
+      document.getElementById("kpi-critical-events").textContent = d.critical_events;
+      document.getElementById("kpi-blocked").textContent  = d.blocked_attacks;
       document.getElementById("k-mttd").textContent     = d.mttd_minutes + "m";
       document.getElementById("k-mttr").textContent     = d.mttr_minutes + "m";
-      document.getElementById("k-devices").textContent  = d.active_devices;
+      document.getElementById("kpi-active-devices").textContent  = d.active_devices;
       document.getElementById("last-update").textContent = "Updated: " + new Date(d.last_updated).toLocaleTimeString();
     } catch(e) {
       document.getElementById("last-update").textContent = "⚠️ Backend offline";
+    }
+  }
+
+  // ── Update KPIs from /api/stats ────────────────────────────────────────────
+  async function updateKPIs() {
+    try {
+      const res = await fetch(`${API}/api/stats`);
+      const data = await res.json();
+      document.getElementById("kpi-total-events").innerText = data.total_events;
+      document.getElementById("kpi-attack-events").innerText = data.attack_events;
+      document.getElementById("kpi-anomaly-rate").innerText = (data.anomaly_rate * 100).toFixed(1) + "%";
+      document.getElementById("kpi-critical-events").innerText = data.critical_events;
+      document.getElementById("kpi-blocked").innerText = data.total_blocked;
+      document.getElementById("kpi-active-devices").innerText = data.active_devices;
+      console.log("KPIs refreshed");
+    } catch (err) {
+      console.error("Error refreshing KPIs:", err);
     }
   }
 
@@ -257,6 +274,7 @@
       addMessage(d.response, "bot");
       loadKPIs();
       loadEvents();
+      await updateKPIs();  // Refresh KPIs after AI action
     } catch(e) {
       loadingDiv.remove();
       addMessage("⚠️ Cannot connect to backend. Make sure python main.py is running.", "bot");
@@ -292,6 +310,7 @@
   loadKPIs();
   loadEvents();
   setInterval(() => { loadKPIs(); loadEvents(); }, 30000); // Auto-refresh every 30s
+  setInterval(updateKPIs, 3000); // Update KPIs every 3s
 </script>
 </body>
 </html>
