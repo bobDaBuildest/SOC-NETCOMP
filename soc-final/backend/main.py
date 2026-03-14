@@ -256,7 +256,15 @@ async def analyze_alert(req: AnalyzeRequest, db: sqlite3.Connection = Depends(ge
 
     return {
         "alert_id": req.alert_id,
-        "explanation": explanation + action_status + synced_stats
+        "explanation": explanation + action_status + synced_stats,
+        "stats": {
+            "total_events": total_events,
+            "attack_events": attack_events,
+            "critical_events": critical_events,
+            "total_blocked": total_blocked,
+            "active_devices": active_devices,
+            "anomaly_rate": anomaly_rate,
+        }
     }
 @app.get("/api/stats")
 def get_stats(db: sqlite3.Connection = Depends(get_db)):
@@ -287,6 +295,12 @@ def get_stats(db: sqlite3.Connection = Depends(get_db)):
         "total_blocked": total_blocked,
         "active_devices": active_devices
     }
+
+
+@app.get("/api/firewalls")
+def get_firewalls():
+    from response_engine import ResponseEngine
+    return ResponseEngine.get_status()
 
 
 if __name__ == "__main__":
