@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI SOC Assistant</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Segoe UI',sans-serif; background:#0d1117; color:#c9d1d9; height:100vh; display:flex; flex-direction:column; }
+
+    /* ── Header ── */
+    header { background:#161b22; border-bottom:1px solid #30363d; padding:12px 24px; display:flex; align-items:center; justify-content:space-between; }
+    header h1 { font-size:1.1rem; color:#58a6ff; display:flex; align-items:center; gap:8px; }
+    .live-badge { background:#238636; color:#fff; font-size:0.7rem; padding:2px 8px; border-radius:12px; }
+
+    /* ── KPI Bar ── */
+    .kpi-bar { display:flex; gap:12px; padding:10px 24px; background:#161b22; border-bottom:1px solid #30363d; overflow-x:auto; }
+    .kpi { background:#0d1117; border:1px solid #30363d; border-radius:6px; padding:8px 16px; white-space:nowrap; }
+    .kpi .k-label { font-size:0.7rem; color:#8b949e; }
+    .kpi .k-value { font-size:1.1rem; font-weight:700; color:#58a6ff; }
+    .kpi.danger .k-value { color:#f85149; }
+    .kpi.warn .k-value   { color:#d29922; }
+    .kpi.good .k-value   { color:#3fb950; }
+
+    /* ── Main layout ── */
+    .layout { display:grid; grid-template-columns:1fr 420px; flex:1; overflow:hidden; }
+
+    /* ── Events Panel ── */
+    .events-panel { display:flex; flex-direction:column; border-right:1px solid #30363d; overflow:hidden; }
+    .panel-header { padding:12px 16px; border-bottom:1px solid #30363d; font-size:0.85rem; font-weight:600; display:flex; justify-content:space-between; align-items:center; }
+    .events-list { flex:1; overflow-y:auto; }
+
+    .event-row { padding:10px 16px; border-bottom:1px solid #21262d; display:grid; grid-template-columns:110px 110px 110px 1fr 80px; gap:8px; font-size:0.8rem; cursor:pointer; align-items:center; }
+    .event-row:hover { background:#1c2128; }
+    .event-row .ts { color:#8b949e; font-size:0.75rem; }
+    .event-row .ip { font-family:monospace; font-size:0.78rem; }
+    .badge { padding:2px 7px; border-radius:4px; font-size:0.7rem; font-weight:700; text-align:center; }
+    .CRITICAL { background:#3d1a1a; color:#f85149; }
+    .HIGH     { background:#2d1f0e; color:#d29922; }
+    .MEDIUM   { background:#1a2a1a; color:#3fb950; }
+    .INFO,.LOW{ background:#1c2128; color:#8b949e; }
+
+    .filter-bar { display:flex; gap:8px; padding:8px 16px; border-bottom:1px solid #30363d; }
+    .filter-btn { background:#21262d; border:1px solid #30363d; color:#c9d1d9; padding:4px 12px; border-radius:4px; cursor:pointer; font-size:0.78rem; }
+    .filter-btn.active { background:#1f3a5f; border-color:#58a6ff; color:#58a6ff; }
+    .filter-btn:hover { background:#30363d; }
+
+    /* ── Chat Panel ── */
+    .chat-panel { display:flex; flex-direction:column; overflow:hidden; }
+    .chat-messages { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px; }
+
+    .msg { max-width:90%; padding:10px 14px; border-radius:8px; font-size:0.85rem; line-height:1.6; white-space:pre-wrap; }
+    .msg.user { background:#1f3a5f; color:#c9d1d9; align-self:flex-end; border-radius:8px 8px 2px 8px; }
+    .msg.bot  { background:#161b22; border:1px solid #30363d; align-self:flex-start; border-radius:8px 8px 8px 2px; }
+    .msg.bot .sender { font-size:0.72rem; color:#58a6ff; margin-bottom:4px; font-weight:600; }
+    .msg.loading { color:#8b949e; font-style:italic; }
+
+    .chat-input-area { padding:12px 16px; border-top:1px solid #30363d; display:flex; gap:8px; }
+    .chat-input-area input { flex:1; background:#0d1117; border:1px solid #30363d; color:#c9d1d9; padding:9px 14px; border-radius:6px; font-size:0.85rem; outline:none; }
+    .chat-input-area input:focus { border-color:#58a6ff; }
+    .chat-input-area button { background:#238636; color:#fff; border:none; padding:9px 16px; border-radius:6px; cursor:pointer; font-size:0.85rem; }
+    .chat-input-area button:hover { background:#2ea043; }
+
+    .quick-btns { display:flex; gap:6px; padding:0 16px 10px; flex-wrap:wrap; }
+    .quick-btn { background:#21262d; border:1px solid #30363d; color:#8b949e; padding:4px 10px; border-radius:4px; cursor:pointer; font-size:0.75rem; }
+    .quick-btn:hover { background:#30363d; color:#c9d1d9; }
+
+    /* ── Attack inject bar ── */
+    .inject-bar { padding:8px 16px; border-top:1px solid #30363d; display:flex; gap:6px; flex-wrap:wrap; }
+    .inject-btn { background:#3d1a1a; border:1px solid #f85149; color:#f85149; padding:3px 10px; border-radius:4px; cursor:pointer; font-size:0.72rem; }
+    .inject-btn:hover { background:#5a2020; }
+
+    ::-webkit-scrollbar { width:4px; }
+    ::-webkit-scrollbar-track { background:#0d1117; }
+    ::-webkit-scrollbar-thumb { background:#30363d; border-radius:2px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🛡️ AI SOC Assistant <span class="live-badge">LIVE</span></h1>
+  <span style="font-size:0.8rem;color:#8b949e;" id="last-update">Loading...</span>
+</header>
+
+<!-- KPI Bar -->
+<div class="kpi-bar" id="kpi-bar">
+  <div class="kpi"><div class="k-label">Total Events</div><div class="k-value" id="k-total">—</div></div>
+  <div class="kpi danger"><div class="k-label">Attack Events</div><div class="k-value" id="k-attacks">—</div></div>
+  <div class="kpi warn"><div class="k-label">Anomaly Rate</div><div class="k-value" id="k-rate">—</div></div>
+  <div class="kpi danger"><div class="k-label">Critical Events</div><div class="k-value" id="k-critical">—</div></div>
+  <div class="kpi good"><div class="k-label">Blocked</div><div class="k-value" id="k-blocked">—</div></div>
+  <div class="kpi"><div class="k-label">MTTD</div><div class="k-value" id="k-mttd">—</div></div>
+  <div class="kpi"><div class="k-label">MTTR</div><div class="k-value" id="k-mttr">—</div></div>
+  <div class="kpi"><div class="k-label">Active Devices</div><div class="k-value" id="k-devices">—</div></div>
+</div>
+
+<div class="layout">
+
+  <!-- Events Panel -->
+  <div class="events-panel">
+    <div class="panel-header">
+      Security Events
+      <button class="filter-btn" onclick="loadEvents()" style="font-size:0.75rem">↻ Refresh</button>
+    </div>
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterEvents('all', this)">All</button>
+      <button class="filter-btn" onclick="filterEvents('CRITICAL', this)">Critical</button>
+      <button class="filter-btn" onclick="filterEvents('HIGH', this)">High</button>
+      <button class="filter-btn" onclick="filterEvents('attacks', this)">Attacks</button>
+    </div>
+    <div class="events-list" id="events-list">
+      <div style="padding:32px;text-align:center;color:#8b949e">Loading events...</div>
+    </div>
+  </div>
+
+  <!-- Chat Panel -->
+  <div class="chat-panel">
+    <div class="panel-header">🤖 SOC Assistant</div>
+
+    <div class="chat-messages" id="chat-messages">
+      <div class="msg bot">
+        <div class="sender">SOC Assistant</div>
+        Hello! I'm your AI-powered SOC analyst. I can help you:
+        • Analyze security events and alerts
+        • Detect and correlate attack patterns
+        • Generate firewall rules to block threats
+        • Answer questions about your network security
+
+        Try asking me something below 👇
+      </div>
+    </div>
+
+    <div class="quick-btns">
+      <button class="quick-btn" onclick="sendQuick('Show me the latest critical events')">🚨 Critical Events</button>
+      <button class="quick-btn" onclick="sendQuick('Is there an attack taking place?')">⚔️ Active Attacks?</button>
+      <button class="quick-btn" onclick="sendQuick('Show KPIs')">📊 KPIs</button>
+      <button class="quick-btn" onclick="sendQuick('Who is behaving unusually on the network?')">👤 Unusual Behavior</button>
+      <button class="quick-btn" onclick="sendQuick('Correlate the latest events and tell me if there is an ongoing attack')">🔗 Correlate</button>
+    </div>
+
+    <div class="chat-input-area">
+      <input type="text" id="chat-input" placeholder="Ask me about your network security..." onkeydown="if(event.key==='Enter') sendMessage()"/>
+      <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <div class="inject-bar">
+      <span style="font-size:0.72rem;color:#8b949e;padding:4px 0">Inject attack:</span>
+      <button class="inject-btn" onclick="injectAttack('port_scan')">Port Scan</button>
+      <button class="inject-btn" onclick="injectAttack('brute_force_ssh')">SSH Brute Force</button>
+      <button class="inject-btn" onclick="injectAttack('data_exfiltration')">Data Exfiltration</button>
+      <button class="inject-btn" onclick="injectAttack('ddos')">DDoS</button>
+      <button class="inject-btn" onclick="injectAttack('lateral_movement')">Lateral Movement</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const API = "http://localhost:8000";
+  let allEvents = [];
+
+  // ── Load KPIs ──────────────────────────────────────────────────────────────
+  async function loadKPIs() {
+    try {
+      const r = await fetch(`${API}/api/kpis`);
+      const d = await r.json();
+      document.getElementById("k-total").textContent    = d.total_events;
+      document.getElementById("k-attacks").textContent  = d.attack_events;
+      document.getElementById("k-rate").textContent     = d.anomaly_rate + "%";
+      document.getElementById("k-critical").textContent = d.critical_events;
+      document.getElementById("k-blocked").textContent  = d.blocked_attacks;
+      document.getElementById("k-mttd").textContent     = d.mttd_minutes + "m";
+      document.getElementById("k-mttr").textContent     = d.mttr_minutes + "m";
+      document.getElementById("k-devices").textContent  = d.active_devices;
+      document.getElementById("last-update").textContent = "Updated: " + new Date(d.last_updated).toLocaleTimeString();
+    } catch(e) {
+      document.getElementById("last-update").textContent = "⚠️ Backend offline";
+    }
+  }
+
+  // ── Load Events ────────────────────────────────────────────────────────────
+  async function loadEvents() {
+    try {
+      const r = await fetch(`${API}/api/events?limit=100`);
+      const d = await r.json();
+      allEvents = d.events;
+      renderEvents(allEvents);
+    } catch(e) {
+      document.getElementById("events-list").innerHTML =
+        '<div style="padding:24px;text-align:center;color:#f85149">⚠️ Cannot connect to backend</div>';
+    }
+  }
+
+  function renderEvents(events) {
+    const list = document.getElementById("events-list");
+    if (!events.length) {
+      list.innerHTML = '<div style="padding:24px;text-align:center;color:#8b949e">No events found</div>';
+      return;
+    }
+    list.innerHTML = events.map(e => `
+      <div class="event-row" onclick="askAboutEvent('${e.device}', '${e.event_type}', '${e.src_ip}')">
+        <span class="ts">${e.timestamp.split("T")[1]}</span>
+        <span class="ip">${e.src_ip || "—"}</span>
+        <span style="font-size:0.75rem;color:#8b949e">${e.device?.split("-").slice(0,2).join("-") || "—"}</span>
+        <span style="font-size:0.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.message?.substring(0,60) || e.event_type}</span>
+        <span class="badge ${e.severity}">${e.severity}</span>
+      </div>
+    `).join("");
+  }
+
+  function filterEvents(type, btn) {
+    document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    if (type === "all")     renderEvents(allEvents);
+    else if (type === "attacks") renderEvents(allEvents.filter(e => ["DENY","block","ALERT"].includes(e.action)));
+    else renderEvents(allEvents.filter(e => e.severity === type));
+  }
+
+  // ── Chat ───────────────────────────────────────────────────────────────────
+  function addMessage(text, role) {
+    const box = document.getElementById("chat-messages");
+    const div = document.createElement("div");
+    div.className = `msg ${role}`;
+    if (role === "bot") {
+      div.innerHTML = `<div class="sender">SOC Assistant</div>${escHtml(text)}`;
+    } else {
+      div.textContent = text;
+    }
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+    return div;
+  }
+
+  function escHtml(t) {
+    return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+
+  async function sendMessage() {
+    const input = document.getElementById("chat-input");
+    const msg   = input.value.trim();
+    if (!msg) return;
+    input.value = "";
+
+    addMessage(msg, "user");
+    const loadingDiv = addMessage("Analyzing...", "bot loading");
+
+    try {
+      const r = await fetch(`${API}/api/chat`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({message: msg})
+      });
+      const d = await r.json();
+      loadingDiv.remove();
+      addMessage(d.response, "bot");
+      loadKPIs();
+      loadEvents();
+    } catch(e) {
+      loadingDiv.remove();
+      addMessage("⚠️ Cannot connect to backend. Make sure python main.py is running.", "bot");
+    }
+  }
+
+  function sendQuick(msg) {
+    document.getElementById("chat-input").value = msg;
+    sendMessage();
+  }
+
+  function askAboutEvent(device, type, ip) {
+    sendQuick(`Analyze this event: ${type} from ${ip} on ${device}. What happened and what should I do?`);
+  }
+
+  async function injectAttack(scenario) {
+    try {
+      const r = await fetch(`${API}/api/events/inject`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({scenario})
+      });
+      const d = await r.json();
+      addMessage(`🚨 Injected "${scenario}" attack (${d.injected} events). Ask me to analyze it!`, "bot");
+      loadKPIs();
+      loadEvents();
+    } catch(e) {
+      addMessage("⚠️ Could not inject attack — is the backend running?", "bot");
+    }
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  loadKPIs();
+  loadEvents();
+  setInterval(() => { loadKPIs(); loadEvents(); }, 30000); // Auto-refresh every 30s
+</script>
+</body>
+</html>
