@@ -64,16 +64,16 @@ class SOCChatbot:
         self.blocked_ips: List[str] = []
         self.pending_action = None
 
-        print("[OK] SOC Chatbot initialized")
-        print(f"   Groq API: {'[OK] Key found' if self.api_key else '[ERROR] No key - set GROQ_API_KEY'}")
-        print(f"   Event stream: [OK] {len(self.stream._event_buffer)} events loaded")
+        print("🤖 SOC Chatbot initialized")
+        print(f"   Groq API: {'✅ Key found' if self.api_key else '❌ No key — set GROQ_API_KEY'}")
+        print(f"   Event stream: ✅ {len(self.stream._event_buffer)} events loaded\n")
 
     def _build_context(self) -> str:
         """Build current network context to inject into every prompt."""
         return self.stream.get_summary_for_chatbot()
 
     def _get_ai_response(self, user_message: str) -> str:
-        """Call OpenAI with full context + conversation history."""
+        """Call Groq (llama-3.3-70b-versatile) with full context + conversation history."""
         if not self.api_key:
             return self._mock_response(user_message)
 
@@ -177,10 +177,27 @@ class SOCChatbot:
     def _handle_confirm_block(self, message: str) -> str:
         """Handle user confirmation to execute a block action."""
         import re
+        from datetime import datetime
         ips = re.findall(r'\b(?:\d{1,3}\.){3}\d{1,3}\b', message)
         if ips:
             ip = ips[0]
             self.blocked_ips.append(ip)
+
+            # Inject a BLOCKED event into the EventStream so it appears
+            # in Security Events and is counted in get_kpis() blocked_attacks
+            self.stream._event_buffer.append({
+                "timestamp":   datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                "device":      "Cisco-ASA-Firewall-01",
+                "device_type": "cisco_asa",
+                "severity":    "CRITICAL",
+                "src_ip":      ip,
+                "dst_ip":      "ANY",
+                "protocol":    "TCP",
+                "action":      "DENY",
+                "event_type":  "ip_blocked",
+                "message":     f"[SOC ACTION] IP {ip} blocked — deny ip host {ip} any",
+            })
+
             return (
                 f"✅ **Action Executed** — IP {ip} has been blocked\n\n"
                 f"Applied rules:\n"
@@ -191,12 +208,18 @@ class SOCChatbot:
             )
         return "Could not find IP to block."
 
-    def chat(self, user_message: str) -> str:
-        """Main chat method — call this with user input."""
-        # Handle confirm block
+    def chat(self, user_message: str) -> dict:
+        """
+        Main chat method.
+        Returns dict: { "response": str, "blocked_ip": str|None }
+        blocked_ip is set only when a 'confirm block <IP>' was executed.
+        """
+        blocked_ip = None
+
         if "confirm block" in user_message.lower():
             response = self._handle_confirm_block(user_message)
-        # Handle inject attack (for demo/testing)
+            if self.blocked_ips:
+                blocked_ip = self.blocked_ips[-1]
         elif user_message.lower().startswith("inject "):
             scenario = user_message.split(" ", 1)[1].strip()
             events = self.stream.inject_attack(scenario)
@@ -207,11 +230,10 @@ class SOCChatbot:
         else:
             response = self._get_ai_response(user_message)
 
-        # Save to history
         self.history.append({"role": "user",      "content": user_message})
         self.history.append({"role": "assistant",  "content": response})
 
-        return response
+        return {"response": response, "blocked_ip": blocked_ip}
 
 
 # ── CLI interface for testing ─────────────────────────────────────────────────
