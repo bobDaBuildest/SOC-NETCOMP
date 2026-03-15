@@ -283,7 +283,10 @@
     <h2>Admin Access</h2>
     <p>INJECT ATTACK MODULE — RESTRICTED</p>
     <label for="admin-code-input">Administrator Code</label>
+    <div style="position:relative;">
     <input id="admin-code-input" type="password" placeholder="● ● ● ● ● ● ● ●" maxlength="16" autocomplete="off" spellcheck="false"/>
+    <button id="adm-toggle-pw" type="button" onclick="(function(){const i=document.getElementById('admin-code-input');const b=document.getElementById('adm-toggle-pw');i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'👁':'🙈';})()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:transparent;border:none;cursor:pointer;font-size:14px;color:#8b949e;padding:0;line-height:1;">👁</button>
+    </div>
     <div id="admin-auth-error"></div>
     <button id="admin-auth-submit">Authenticate</button>
     <button id="admin-auth-cancel">Cancel</button>
