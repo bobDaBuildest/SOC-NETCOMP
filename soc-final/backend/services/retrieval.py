@@ -34,7 +34,8 @@ class MitigationRetriever:
         self._faiss = faiss
         self._model = SentenceTransformer("all-MiniLM-L6-v2")
 
-        self._kb_path = Path(__file__).resolve().parent.parent / "data" / "mitigation_kb.json"
+        self._kb_path = Path(__file__).resolve(
+        ).parent.parent / "data" / "mitigation_kb.json"
         self._items = self._load_kb()
 
         # Prepare texts for embedding.
@@ -60,7 +61,8 @@ class MitigationRetriever:
             data = json.load(f)
 
         if not isinstance(data, list):
-            raise RetrievalError("Mitigation KB must be a JSON array of entries.")
+            raise RetrievalError(
+                "Mitigation KB must be a JSON array of entries.")
 
         return data
 
@@ -77,7 +79,10 @@ class MitigationRetriever:
         if top_k <= 0:
             return []
 
-        q_emb = self._model.encode([query_text], convert_to_numpy=True, normalize_embeddings=True)
+        q_emb = self._model.encode(
+            [query_text],
+            convert_to_numpy=True,
+            normalize_embeddings=True)
         distances, indices = self._index.search(q_emb, top_k)
 
         results: List[Dict[str, Any]] = []

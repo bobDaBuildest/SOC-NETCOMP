@@ -18,17 +18,17 @@ from datetime import datetime, timedelta
 from typing import List, Dict
 
 
-# ── Realistic IP pools ──────────────────────────────────────────────────
-INTERNAL_IPS = ["192.168.1.10", "192.168.1.20", "192.168.1.30",
-                "10.0.0.5", "10.0.0.8", "10.0.0.15"]
-EXTERNAL_IPS = ["8.8.8.8", "142.250.74.46", "93.184.216.34"]
-ATTACKER_IPS = ["185.220.101.5", "45.33.32.156", "104.21.45.12",
-                "198.51.100.23", "203.0.113.99"]
-PROTOCOLS = ["TCP", "UDP", "ICMP", "HTTP", "HTTPS", "SSH", "FTP", "IRC"]
-PORTS = [22, 23, 25, 53, 80, 443, 445, 3389, 8080, 4444]
+# ── Realistic IP pools ────────────────────────────────────────────────────────
+INTERNAL_IPS   = ["192.168.1.10", "192.168.1.20", "192.168.1.30",
+                  "10.0.0.5", "10.0.0.8", "10.0.0.15"]
+EXTERNAL_IPS   = ["8.8.8.8", "142.250.74.46", "93.184.216.34"]
+ATTACKER_IPS   = ["185.220.101.5", "45.33.32.156", "104.21.45.12",
+                  "198.51.100.23", "203.0.113.99"]
+PROTOCOLS      = ["TCP", "UDP", "ICMP", "HTTP", "HTTPS", "SSH", "FTP", "IRC"]
+PORTS          = [22, 23, 25, 53, 80, 443, 445, 3389, 8080, 4444]
 
 
-# ── Attack Scenarios ────────────────────────────────────────────────────
+# ── Attack Scenarios ──────────────────────────────────────────────────────────
 ATTACK_SCENARIOS = {
     "port_scan": {
         "description": "Port scanning from attacker",
@@ -58,7 +58,7 @@ ATTACK_SCENARIOS = {
 }
 
 
-# ── Base event generator ────────────────────────────────────────────────
+# ── Base event generator ──────────────────────────────────────────────────────
 def _timestamp(offset_seconds: int = 0) -> str:
     t = datetime.now() - timedelta(seconds=offset_seconds)
     return t.strftime("%Y-%m-%dT%H:%M:%S")
@@ -68,7 +68,7 @@ def _random_port() -> int:
     return random.choice(PORTS + list(range(1024, 65535, 1000)))
 
 
-# ── Cisco Router (IOS Syslog) ───────────────────────────────────────────
+# ── Cisco Router (IOS Syslog) ─────────────────────────────────────────────────
 class CiscoRouterGenerator:
     DEVICE_NAME = "Cisco-IOS-Router-01"
 
@@ -81,7 +81,7 @@ class CiscoRouterGenerator:
             "device_type": "cisco_router",
             "severity": "INFO",
             "facility": "LOCAL7",
-            "message": "%LINEPROTO-5-UPDOWN: Interface GigabitEthernet0/0, changed state to up",
+            "message": f"%LINEPROTO-5-UPDOWN: Interface GigabitEthernet0/0, changed state to up",
             "src_ip": src,
             "dst_ip": dst,
             "protocol": random.choice(["TCP", "UDP"]),
@@ -92,7 +92,7 @@ class CiscoRouterGenerator:
 
     def attack_event(self, scenario: str) -> Dict:
         attacker = random.choice(ATTACKER_IPS)
-        target = random.choice(INTERNAL_IPS)
+        target   = random.choice(INTERNAL_IPS)
 
         if scenario == "port_scan":
             port = random.randint(1, 1024)
@@ -102,7 +102,7 @@ class CiscoRouterGenerator:
                 "device_type": "cisco_router",
                 "severity": "HIGH",
                 "facility": "LOCAL7",
-                "message": f"%SEC-6-IPACCESSLOGP: list BLOCK denied tcp {attacker}({random.randint(1024, 65535)}) -> {target}({port}), 1 packet",
+                "message": f"%SEC-6-IPACCESSLOGP: list BLOCK denied tcp {attacker}({random.randint(1024,65535)}) -> {target}({port}), 1 packet",
                 "src_ip": attacker,
                 "dst_ip": target,
                 "dst_port": port,
@@ -114,10 +114,7 @@ class CiscoRouterGenerator:
 
         if scenario == "brute_force_ssh":
             return {
-                "timestamp": _timestamp(
-                    random.randint(
-                        0,
-                        30)),
+                "timestamp": _timestamp(random.randint(0, 30)),
                 "device": self.DEVICE_NAME,
                 "device_type": "cisco_router",
                 "severity": "CRITICAL",
@@ -134,7 +131,7 @@ class CiscoRouterGenerator:
         return self.normal_event()
 
 
-# ── Cisco ASA Firewall ──────────────────────────────────────────────────
+# ── Cisco ASA Firewall ────────────────────────────────────────────────────────
 class CiscoASAGenerator:
     DEVICE_NAME = "Cisco-ASA-Firewall-01"
 
@@ -142,10 +139,7 @@ class CiscoASAGenerator:
         src = random.choice(INTERNAL_IPS)
         dst = random.choice(EXTERNAL_IPS)
         return {
-            "timestamp": _timestamp(
-                random.randint(
-                    0,
-                    300)),
+            "timestamp": _timestamp(random.randint(0, 300)),
             "device": self.DEVICE_NAME,
             "device_type": "cisco_asa",
             "severity": "INFO",
@@ -154,26 +148,19 @@ class CiscoASAGenerator:
             "dst_ip": dst,
             "dst_port": 443,
             "protocol": "TCP",
-            "bytes_sent": random.randint(
-                500,
-                10000),
-            "bytes_recv": random.randint(
-                1000,
-                50000),
+            "bytes_sent": random.randint(500, 10000),
+            "bytes_recv": random.randint(1000, 50000),
             "action": "ALLOW",
             "event_type": "connection_built",
         }
 
     def attack_event(self, scenario: str) -> Dict:
         attacker = random.choice(ATTACKER_IPS)
-        target = random.choice(INTERNAL_IPS)
+        target   = random.choice(INTERNAL_IPS)
 
         if scenario == "data_exfiltration":
             return {
-                "timestamp": _timestamp(
-                    random.randint(
-                        0,
-                        120)),
+                "timestamp": _timestamp(random.randint(0, 120)),
                 "device": self.DEVICE_NAME,
                 "device_type": "cisco_asa",
                 "severity": "CRITICAL",
@@ -182,12 +169,8 @@ class CiscoASAGenerator:
                 "dst_ip": target,
                 "dst_port": 443,
                 "protocol": "TCP",
-                "bytes_sent": random.randint(
-                    10_000_000,
-                    50_000_000),
-                "bytes_recv": random.randint(
-                    100,
-                    500),
+                "bytes_sent": random.randint(10_000_000, 50_000_000),
+                "bytes_recv": random.randint(100, 500),
                 "action": "DENY",
                 "event_type": "data_exfiltration",
                 "attack_scenario": scenario,
@@ -195,10 +178,7 @@ class CiscoASAGenerator:
 
         if scenario == "ddos":
             return {
-                "timestamp": _timestamp(
-                    random.randint(
-                        0,
-                        10)),
+                "timestamp": _timestamp(random.randint(0, 10)),
                 "device": self.DEVICE_NAME,
                 "device_type": "cisco_asa",
                 "severity": "CRITICAL",
@@ -206,9 +186,7 @@ class CiscoASAGenerator:
                 "src_ip": attacker,
                 "dst_ip": target,
                 "protocol": "TCP",
-                "packets_per_sec": random.randint(
-                    10000,
-                    100000),
+                "packets_per_sec": random.randint(10000, 100000),
                 "action": "DENY",
                 "event_type": "ddos",
                 "attack_scenario": scenario,
@@ -217,7 +195,7 @@ class CiscoASAGenerator:
         return self.normal_event()
 
 
-# ── pfSense Firewall ────────────────────────────────────────────────────
+# ── pfSense Firewall ──────────────────────────────────────────────────────────
 class PfSenseGenerator:
     DEVICE_NAME = "pfSense-Firewall-02"
 
@@ -229,7 +207,7 @@ class PfSenseGenerator:
             "device": self.DEVICE_NAME,
             "device_type": "pfsense",
             "severity": "INFO",
-            "rule": f"@{random.randint(1, 50)}(1000000103)",
+            "rule": f"@{random.randint(1,50)}(1000000103)",
             "action": "pass",
             "direction": "out",
             "protocol": random.choice(["tcp", "udp"]),
@@ -243,7 +221,7 @@ class PfSenseGenerator:
 
     def attack_event(self, scenario: str) -> Dict:
         attacker = random.choice(ATTACKER_IPS)
-        target = random.choice(INTERNAL_IPS)
+        target   = random.choice(INTERNAL_IPS)
 
         if scenario == "lateral_movement":
             src = random.choice(INTERNAL_IPS)
@@ -270,24 +248,24 @@ class PfSenseGenerator:
         return self.normal_event()
 
 
-# ── Snort IDS/IPS ───────────────────────────────────────────────────────
+# ── Snort IDS/IPS ─────────────────────────────────────────────────────────────
 class SnortGenerator:
     DEVICE_NAME = "Snort-IDS-01"
 
     SIGNATURES = [
-        {"sid": 1000001, "msg": "ET SCAN Nmap SYN Scan", "category": "port_scan"},
-        {"sid": 1000002, "msg": "ET BRUTE SSH Brute Force", "category": "brute_force"},
-        {"sid": 1000003, "msg": "ET MALWARE CnC Beacon", "category": "malware"},
-        {"sid": 1000004, "msg": "ET EXPLOIT EternalBlue", "category": "exploit"},
-        {"sid": 1000005, "msg": "ET DOS ICMP Flood", "category": "ddos"},
-        {"sid": 1000006, "msg": "ET POLICY IRC Connection", "category": "policy"},
-        {"sid": 1000007, "msg": "ET TROJAN Metasploit Payload", "category": "malware"},
+        {"sid": 1000001, "msg": "ET SCAN Nmap SYN Scan",            "category": "port_scan"},
+        {"sid": 1000002, "msg": "ET BRUTE SSH Brute Force",          "category": "brute_force"},
+        {"sid": 1000003, "msg": "ET MALWARE CnC Beacon",             "category": "malware"},
+        {"sid": 1000004, "msg": "ET EXPLOIT EternalBlue",            "category": "exploit"},
+        {"sid": 1000005, "msg": "ET DOS ICMP Flood",                 "category": "ddos"},
+        {"sid": 1000006, "msg": "ET POLICY IRC Connection",          "category": "policy"},
+        {"sid": 1000007, "msg": "ET TROJAN Metasploit Payload",      "category": "malware"},
     ]
 
     def alert_event(self) -> Dict:
-        sig = random.choice(self.SIGNATURES)
+        sig      = random.choice(self.SIGNATURES)
         attacker = random.choice(ATTACKER_IPS)
-        target = random.choice(INTERNAL_IPS)
+        target   = random.choice(INTERNAL_IPS)
         return {
             "timestamp": _timestamp(random.randint(0, 300)),
             "device": self.DEVICE_NAME,
@@ -309,13 +287,13 @@ class SnortGenerator:
         }
 
 
-# ── Main Generator ──────────────────────────────────────────────────────
+# ── Main Generator ────────────────────────────────────────────────────────────
 class MockDataGenerator:
     def __init__(self):
         self.cisco_router = CiscoRouterGenerator()
-        self.cisco_asa = CiscoASAGenerator()
-        self.pfsense = PfSenseGenerator()
-        self.snort = SnortGenerator()
+        self.cisco_asa    = CiscoASAGenerator()
+        self.pfsense      = PfSenseGenerator()
+        self.snort        = SnortGenerator()
 
     def generate_normal_traffic(self, count: int = 20) -> List[Dict]:
         events = []
@@ -331,14 +309,11 @@ class MockDataGenerator:
     def generate_attack_scenario(self, scenario: str) -> List[Dict]:
         """Generate a full attack scenario with correlated events across devices."""
         if scenario not in ATTACK_SCENARIOS:
-            raise ValueError(
-                f"Unknown scenario: {scenario}. Choose from: {
-                    list(
-                        ATTACK_SCENARIOS.keys())}")
+            raise ValueError(f"Unknown scenario: {scenario}. Choose from: {list(ATTACK_SCENARIOS.keys())}")
 
-        info = ATTACK_SCENARIOS[scenario]
+        info   = ATTACK_SCENARIOS[scenario]
         events = []
-        count = info["events"]
+        count  = info["events"]
 
         for i in range(count):
             # Each attack triggers events on multiple devices
@@ -355,17 +330,16 @@ class MockDataGenerator:
             elif scenario == "lateral_movement":
                 events.append(self.pfsense.attack_event(scenario))
                 if i % 2 == 0:
-                    events.append(
-                        self.cisco_asa.attack_event("data_exfiltration"))
+                    events.append(self.cisco_asa.attack_event("data_exfiltration"))
 
         return sorted(events, key=lambda x: x["timestamp"])
 
     def generate_mixed_dataset(self, normal_count: int = 30) -> List[Dict]:
         """Generate realistic mixed dataset: normal traffic + random attack."""
         scenario = random.choice(list(ATTACK_SCENARIOS.keys()))
-        normal = self.generate_normal_traffic(normal_count)
-        attacks = self.generate_attack_scenario(scenario)
-        mixed = normal + attacks
+        normal   = self.generate_normal_traffic(normal_count)
+        attacks  = self.generate_attack_scenario(scenario)
+        mixed    = normal + attacks
         return sorted(mixed, key=lambda x: x["timestamp"])
 
     def generate_all_scenarios(self) -> Dict:
@@ -376,7 +350,7 @@ class MockDataGenerator:
         }
 
 
-# ── CLI usage ───────────────────────────────────────────────────────────
+# ── CLI usage ─────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     gen = MockDataGenerator()
 
@@ -390,9 +364,8 @@ if __name__ == "__main__":
     print(f"✅ Generated {len(dataset)} events → mock_events.json")
 
     # Stats
-    attacks = [e for e in dataset if e.get(
-        "action") in ("DENY", "block", "ALERT")]
+    attacks = [e for e in dataset if e.get("action") in ("DENY", "block", "ALERT")]
     print(f"   Normal events : {len(dataset) - len(attacks)}")
     print(f"   Attack events : {len(attacks)}")
-    print("\n📋 Sample event:")
+    print(f"\n📋 Sample event:")
     print(json.dumps(dataset[0], indent=2))
