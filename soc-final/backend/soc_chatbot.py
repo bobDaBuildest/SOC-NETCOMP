@@ -12,24 +12,23 @@ Example questions:
   - "Correlate events from the last hour"
 """
 
-from typing import List, Dict
-from event_stream import EventStream
-from dotenv import load_dotenv
 import os
+import re
 import json
 import sys
+from typing import List, Dict
+
+from dotenv import load_dotenv
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../devices/mock"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../devices/real"))
-sys.path.insert(
-    0,
-    os.path.join(
-        os.path.dirname(__file__),
-        "../devices/collector"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../devices/collector"))
 
+from event_stream import EventStream  # noqa: E402
 
 load_dotenv()
 
-# ── System prompt ───────────────────────────────────────────────────────
+# ── System prompt ────────────────────────────────────────────────────────────
 SYSTEM_PROMPT = """You are an expert SOC (Security Operations Center) analyst assistant.
 You have access to real-time security event data from network devices including:
 - Cisco IOS Routers
@@ -77,7 +76,7 @@ class SOCChatbot:
         return self.stream.get_summary_for_chatbot()
 
     def _get_ai_response(self, user_message: str) -> str:
-        """Call OpenAI with full context + conversation history."""
+        """Call Groq with full context + conversation history."""
         if not self.api_key:
             return self._mock_response(user_message)
 
@@ -85,66 +84,53 @@ class SOCChatbot:
             from groq import Groq
             client = Groq(api_key=self.api_key)
 
-            # Build messages: system + context + history + new message
             messages = [
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "system", "content": f"CURRENT NETWORK DATA:\n{self._build_context()}"},
             ]
-            messages += self.history[-10:]  # Last 10 messages for context
+            messages += self.history[-10:]
             messages.append({"role": "user", "content": user_message})
 
             response = client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=messages,
                 max_tokens=800,
-                temperature=0.3,  # Lower = more focused/consistent
+                temperature=0.3,
             )
             return response.choices[0].message.content
 
         except Exception as e:
-            return f"⚠️ AI unavailable: {str(e)}\n\n{self._mock_response(user_message)}"
+            return f"AI unavailable: {str(e)}\n\n{self._mock_response(user_message)}"
 
     def _mock_response(self, message: str) -> str:
         """Rule-based fallback when no API key is available."""
         msg = message.lower()
         kpis = self.stream.get_kpis()
 
-        if any(
-            w in msg for w in [
-                "critical",
-                "κρίσιμα",
-                "latest",
-                "τελευταία"]):
+        if any(w in msg for w in ["critical", "latest"]):
             events = self.stream.get_critical_events(5)
             if not events:
-                return "✅ No critical events detected at this time."
-            lines = [f"🚨 **{len(events)} Critical Events Detected:**\n"]
+                return "No critical events detected at this time."
+            lines = [f"** {len(events)} Critical Events Detected:**\n"]
             for e in events:
                 lines.append(
-                    f"• [{
-                        e['timestamp']}] {
-                        e['device']}\n  {
-                        e['message']}\n  Action: {
-                        e['action']}")
+                    f"• [{e['timestamp']}] {e['device']}\n"
+                    f"  {e['message']}\n"
+                    f"  Action: {e['action']}"
+                )
             return "\n".join(lines)
 
-        if any(
-            w in msg for w in [
-                "attack",
-                "επίθεση",
-                "unusual",
-                "ασυνήθιστη"]):
+        if any(w in msg for w in ["attack", "unusual"]):
             attacks = self.stream.get_attack_events(10)
             if not attacks:
-                return "✅ No active attacks detected."
-            # Correlate by source IP
+                return "No active attacks detected."
             src_ips = {}
             for e in attacks:
                 ip = e.get("src_ip", "unknown")
                 src_ips[ip] = src_ips.get(ip, 0) + 1
             top_ip = max(src_ips, key=src_ips.get)
             lines = [
-                "⚠️ **Attack Analysis** (Confidence: 87%)\n",
+                "**Attack Analysis** (Confidence: 87%)\n",
                 f"Detected {len(attacks)} attack events across {kpis['active_devices']} devices.",
                 f"Most active attacker: **{top_ip}** ({src_ips[top_ip]} events)",
                 "\nCorrelated patterns:",
@@ -152,28 +138,25 @@ class SOCChatbot:
             types = list(set(e.get("event_type") for e in attacks))
             for t in types:
                 lines.append(f"  • {t.replace('_', ' ').title()}")
-            lines.append(
-                f"\n💡 Recommendation: Investigate {top_ip} immediately.")
+            lines.append(f"\nRecommendation: Investigate {top_ip} immediately.")
             return "\n".join(lines)
 
-        if any(w in msg for w in ["block", "μπλοκ", "ban"]):
-            # Extract IP from message
-            import re
+        if any(w in msg for w in ["block", "ban"]):
             ips = re.findall(r'\b(?:\d{1,3}\.){3}\d{1,3}\b', message)
             if ips:
                 ip = ips[0]
                 return (
-                    f"🛡️ **Firewall Rule Generated** (Confidence: 94%)\n\n"
+                    f"**Firewall Rule Generated** (Confidence: 94%)\n\n"
                     f"Target IP: `{ip}`\n"
                     f"Rule: `deny ip host {ip} any`\n"
                     f"Apply on: Cisco-ASA-Firewall-01 + pfSense-Firewall-02\n\n"
-                    f"⚠️ **Awaiting confirmation** — reply 'confirm block {ip}' to execute."
+                    f"Awaiting confirmation — reply 'confirm block {ip}' to execute."
                 )
             return "Please specify an IP address to block. Example: 'block 185.220.101.5'"
 
-        if any(w in msg for w in ["kpi", "stats", "status", "κατάσταση"]):
+        if any(w in msg for w in ["kpi", "stats", "status"]):
             return (
-                f"📊 **Network Security KPIs**\n\n"
+                f"**Network Security KPIs**\n\n"
                 f"• Total Events: {kpis['total_events']}\n"
                 f"• Attack Events: {kpis['attack_events']} ({kpis['anomaly_rate']}%)\n"
                 f"• Critical Events: {kpis['critical_events']}\n"
@@ -191,55 +174,53 @@ class SOCChatbot:
             "• 'Show KPIs'\n"
             "• 'Block IP [address]'\n"
             "• 'Correlate events'\n\n"
-            "Set OPENAI_API_KEY for full AI-powered responses."
+            "Set GROQ_API_KEY for full AI-powered responses."
         )
 
     def _handle_confirm_block(self, message: str) -> str:
         """Handle user confirmation to execute a block action."""
-        import re
         ips = re.findall(r'\b(?:\d{1,3}\.){3}\d{1,3}\b', message)
         if ips:
             ip = ips[0]
             self.blocked_ips.append(ip)
             return (
-                f"✅ **Action Executed** — IP {ip} has been blocked\n\n"
+                f"**Action Executed** — IP {ip} has been blocked\n\n"
                 f"Applied rules:\n"
-                f"• Cisco-ASA-Firewall-01: `deny ip host {ip} any` ✅\n"
-                f"• pfSense-Firewall-02: `block in quick from {ip}` ✅\n\n"
+                f"• Cisco-ASA-Firewall-01: `deny ip host {ip} any`\n"
+                f"• pfSense-Firewall-02: `block in quick from {ip}`\n\n"
                 f"Currently blocked IPs: {', '.join(self.blocked_ips)}\n"
-                f"⚠️ Note: In production this would call the device REST API directly."
+                f"Note: In production this would call the device REST API directly."
             )
         return "Could not find IP to block."
 
     def chat(self, user_message: str) -> str:
         """Main chat method — call this with user input."""
-        # Handle confirm block
         if "confirm block" in user_message.lower():
             response = self._handle_confirm_block(user_message)
-        # Handle inject attack (for demo/testing)
         elif user_message.lower().startswith("inject "):
             scenario = user_message.split(" ", 1)[1].strip()
             events = self.stream.inject_attack(scenario)
             if events:
-                response = f"🚨 Injected {
-                    len(events)} '{scenario}' attack events into the stream. Ask me to analyze them!"
+                response = f"Injected {len(events)} '{scenario}' attack events into the stream. Ask me to analyze them!"
             else:
-                response = f"Unknown scenario '{scenario}'. Available: port_scan, brute_force_ssh, data_exfiltration, ddos, lateral_movement"
+                response = (
+                    f"Unknown scenario '{scenario}'. "
+                    "Available: port_scan, brute_force_ssh, data_exfiltration, ddos, lateral_movement"
+                )
         else:
             response = self._get_ai_response(user_message)
 
-        # Save to history
         self.history.append({"role": "user", "content": user_message})
         self.history.append({"role": "assistant", "content": response})
 
         return response
 
 
-# ── CLI interface for testing ───────────────────────────────────────────
+# ── CLI interface for testing ─────────────────────────────────────────────────
 if __name__ == "__main__":
     bot = SOCChatbot()
     print("=" * 60)
-    print("🛡️  SOC Assistant — Type 'exit' to quit")
+    print("SOC Assistant — Type 'exit' to quit")
     print("=" * 60)
     print("Try: 'show critical events', 'is there an attack?', 'show kpis'")
     print("-" * 60 + "\n")
@@ -252,9 +233,9 @@ if __name__ == "__main__":
             if user_input.lower() in ("exit", "quit"):
                 break
             response = bot.chat(user_input)
-            print(f"\n🤖 SOC Assistant:\n{response}\n")
+            print(f"\nSOC Assistant:\n{response}\n")
             print("-" * 60)
         except KeyboardInterrupt:
             break
 
-    print("\nGoodbye! 👋")
+    print("\nGoodbye!")

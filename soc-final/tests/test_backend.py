@@ -96,7 +96,7 @@ def test_stats():
 
 def test_analyze_alert_no_key(monkeypatch):
     """Should return explanation even without real API key."""
-    monkeypatch.setenv("OPENAI_API_KEY", "test-key-invalid")
+    monkeypatch.setenv("GROQ_API_KEY", "test-key-invalid")
     r = client.post("/api/analyze", json={
         "alert_id": "ALT-001",
         "alert_description": "Large outbound data transfer detected from 192.168.1.55"
