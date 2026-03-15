@@ -11,21 +11,30 @@ Usage:
     attack = stream.inject_attack("brute_force_ssh")
 """
 
+import json
+from datetime import datetime
+from typing import List, Dict, Optional
 import sys
 import os
 import io
 
 # Fix Windows Unicode encoding
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+sys.stdout = io.TextIOWrapper(
+    sys.stdout.buffer,
+    encoding='utf-8',
+    errors='replace')
 
-# Correct paths: mock/ and real/ are siblings of event_stream.py (inside backend/)
+# Correct paths: mock/ and real/ are siblings of event_stream.py (inside
+# backend/)
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(_HERE, "mock"))
 sys.path.insert(0, os.path.join(_HERE, "real"))
 
 # Also support the sibling Soc-netcomp repo path
-sys.path.insert(0, r"C:\Users\zafeiro\Documents\GitHub\Soc-netcomp\backend\devices\mock")
-sys.path.insert(0, r"C:\Users\zafeiro\Documents\GitHub\Soc-netcomp\backend\devices\collector")
+sys.path.insert(
+    0, r"C:\Users\zafeiro\Documents\GitHub\Soc-netcomp\backend\devices\mock")
+sys.path.insert(
+    0, r"C:\Users\zafeiro\Documents\GitHub\Soc-netcomp\backend\devices\collector")
 
 try:
     from mock_generator import MockDataGenerator, ATTACK_SCENARIOS
@@ -41,9 +50,6 @@ try:
     _HAS_REAL_LOGS = True
 except ImportError:
     _HAS_REAL_LOGS = False
-from typing import List, Dict, Optional
-from datetime import datetime
-import json
 
 
 class EventStream:
@@ -82,7 +88,12 @@ class EventStream:
 
         mock_events = self.mock.generate_mixed_dataset(50)
         self._event_buffer = real_events + mock_events
-        print(f"[OK] EventStream ready -- {len(self._event_buffer)} events loaded ({len(real_events)} real, {len(mock_events)} mock)")
+        print(
+            f"[OK] EventStream ready -- {
+                len(
+                    self._event_buffer)} events loaded ({
+                len(real_events)} real, {
+                    len(mock_events)} mock)")
 
     def get_events(self, limit: int = 50, severity: Optional[str] = None,
                    device_type: Optional[str] = None) -> List[Dict]:
@@ -90,12 +101,18 @@ class EventStream:
         events = self._event_buffer[-limit:]
 
         if severity:
-            events = [e for e in events if e.get("severity") == severity.upper()]
+            events = [e for e in events if e.get(
+                "severity") == severity.upper()]
 
         if device_type:
             events = [e for e in events if e.get("device_type") == device_type]
 
-        return sorted(events, key=lambda x: x.get("timestamp", ""), reverse=True)
+        return sorted(
+            events,
+            key=lambda x: x.get(
+                "timestamp",
+                ""),
+            reverse=True)
 
     def get_critical_events(self, limit: int = 20) -> List[Dict]:
         return self.get_events(limit=limit, severity="CRITICAL")
@@ -116,7 +133,9 @@ class EventStream:
         """Calculate KPIs from current event buffer."""
         events = self._event_buffer
         total = len(events)
-        attacks = [e for e in events if e.get("action") in ("DENY", "block", "ALERT")]
+        attacks = [
+            e for e in events if e.get("action") in (
+                "DENY", "block", "ALERT")]
         critical = [e for e in events if e.get("severity") == "CRITICAL"]
         devices = list(set(e.get("device") for e in events))
 
@@ -160,11 +179,23 @@ Active Devices: {', '.join(kpis['device_list'])}
 Latest Critical Events:
 """
         for ev in critical[:5]:
-            summary += f"- [{ev.get('timestamp')}] {ev.get('device')} | {ev.get('message', '')} | Action: {ev.get('action')}\n"
+            summary += f"- [{
+                ev.get('timestamp')}] {
+                ev.get('device')} | {
+                ev.get(
+                    'message',
+                    '')} | Action: {
+                    ev.get('action')}\n"
 
         summary += "\nLatest Attack Events:\n"
         for ev in attacks[:5]:
-            summary += f"- [{ev.get('timestamp')}] {ev.get('device')} | SRC: {ev.get('src_ip')} -> DST: {ev.get('dst_ip')} | {ev.get('event_type')} | {ev.get('action')}\n"
+            summary += f"- [{
+                ev.get('timestamp')}] {
+                ev.get('device')} | SRC: {
+                ev.get('src_ip')} -> DST: {
+                ev.get('dst_ip')} | {
+                    ev.get('event_type')} | {
+                        ev.get('action')}\n"
 
         return summary.strip()
 

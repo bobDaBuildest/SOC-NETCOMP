@@ -40,7 +40,7 @@ def _severity_from_action(action: str, app: str, dst_port: int) -> str:
 
 
 def _message_from_event(device_type: str, action: str, app: str,
-                         src_ip: str, dst_ip: str, dst_port: int) -> str:
+                        src_ip: str, dst_ip: str, dst_port: int) -> str:
     port_name = SUSPICIOUS_PORTS.get(dst_port, str(dst_port))
     if action.lower() in ("deny", "drop", "block"):
         return f"{device_type}: Blocked {app} from {src_ip} -> {dst_ip}:{port_name}"
@@ -52,12 +52,17 @@ class RealLogParser:
     def __init__(self, logs_dir: str = None):
         if logs_dir is None:
             # Default: look next to this file
-            logs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+            logs_dir = os.path.join(
+                os.path.dirname(
+                    os.path.abspath(__file__)),
+                "logs")
         self.logs_dir = logs_dir
-        self.fortigate_file = os.path.join(logs_dir, "FortiGate Sample logs.txt")
-        self.paloalto_file  = os.path.join(logs_dir, "PaloAlto sample traffic logs.txt")
+        self.fortigate_file = os.path.join(
+            logs_dir, "FortiGate Sample logs.txt")
+        self.paloalto_file = os.path.join(
+            logs_dir, "PaloAlto sample traffic logs.txt")
 
-    # ── FortiGate ──────────────────────────────────────────────────────────────
+    # ── FortiGate ───────────────────────────────────────────────────────────
 
     def load_fortigate(self) -> List[Dict]:
         if not os.path.exists(self.fortigate_file):
@@ -77,15 +82,16 @@ class RealLogParser:
 
                 date_str = get("date")
                 time_str = get("time")
-                timestamp = f"{date_str}T{time_str}" if date_str else datetime.now().isoformat()
+                timestamp = f"{date_str}T{time_str}" if date_str else datetime.now(
+                ).isoformat()
 
-                src_ip   = get("srcip")
-                dst_ip   = get("dstip")
-                action   = get("action")
-                app      = get("app") or get("service")
-                level    = get("level")
-                policy   = get("policyname")
-                apprisk  = get("apprisk")
+                src_ip = get("srcip")
+                dst_ip = get("dstip")
+                action = get("action")
+                app = get("app") or get("service")
+                level = get("level")
+                policy = get("policyname")
+                apprisk = get("apprisk")
 
                 try:
                     dst_port = int(get("dstport"))
@@ -106,26 +112,26 @@ class RealLogParser:
                     severity = "CRITICAL"
 
                 events.append({
-                    "timestamp":   timestamp,
-                    "device":      "FortiGate-FW-01",
+                    "timestamp": timestamp,
+                    "device": "FortiGate-FW-01",
                     "device_type": "fortigate",
-                    "src_ip":      src_ip,
-                    "dst_ip":      dst_ip,
-                    "dst_port":    dst_port,
-                    "action":      action.upper() if action else "ALLOW",
-                    "app":         app,
-                    "policy":      policy,
-                    "severity":    severity,
-                    "event_type":  "firewall_traffic",
-                    "message":     _message_from_event(
-                                       "FortiGate", action, app,
-                                       src_ip, dst_ip, dst_port),
+                    "src_ip": src_ip,
+                    "dst_ip": dst_ip,
+                    "dst_port": dst_port,
+                    "action": action.upper() if action else "ALLOW",
+                    "app": app,
+                    "policy": policy,
+                    "severity": severity,
+                    "event_type": "firewall_traffic",
+                    "message": _message_from_event(
+                        "FortiGate", action, app,
+                        src_ip, dst_ip, dst_port),
                 })
 
         print(f"[OK] FortiGate: loaded {len(events)} events")
         return events
 
-    # ── PaloAlto ───────────────────────────────────────────────────────────────
+    # ── PaloAlto ────────────────────────────────────────────────────────────
 
     def load_paloalto(self) -> List[Dict]:
         if not os.path.exists(self.paloalto_file):
@@ -134,7 +140,7 @@ class RealLogParser:
 
         events = []
         with open(self.paloalto_file, encoding="utf-8", errors="ignore") as f:
-            lines = [l.rstrip("\r\n") for l in f.readlines()]
+            lines = [line.rstrip("\r\n") for line in f.readlines()]
 
         # PaloAlto format: every 4 lines = 1 event (after the header block)
         i = 0
@@ -148,7 +154,7 @@ class RealLogParser:
             # Try to parse a 4-line block
             if i + 3 < len(lines):
                 line1 = lines[i].split()      # Time App From SrcPort Source
-                line2 = lines[i+1].split()    # Rule Action To DstPort Dest
+                line2 = lines[i + 1].split()    # Rule Action To DstPort Dest
                 # line3 = end reason (skip)
                 # line4 = rule uuid (skip)
 
@@ -157,35 +163,35 @@ class RealLogParser:
                     timestamp = datetime.strptime(
                         timestamp_str, "%Y/%m/%d %H:%M:%S").isoformat()
                     # line1: date time app from_zone src_port src_ip
-                    app      = line1[2]
+                    app = line1[2]
                     src_port = int(line1[4])
-                    src_ip   = line1[5]
+                    src_ip = line1[5]
 
                     # line2: rule_name action to_zone dst_port dst_ip
-                    action   = line2[-4].lower()
+                    action = line2[-4].lower()
                     dst_port = int(line2[-2])
-                    dst_ip   = line2[-1]
+                    dst_ip = line2[-1]
 
                     severity = _severity_from_action(action, app, dst_port)
                     if action in ("deny", "drop", "reset"):
                         severity = "HIGH"
 
                     events.append({
-                        "timestamp":   timestamp,
-                        "device":      "PaloAlto-FW-01",
+                        "timestamp": timestamp,
+                        "device": "PaloAlto-FW-01",
                         "device_type": "paloalto",
-                        "src_ip":      src_ip,
-                        "dst_ip":      dst_ip,
-                        "src_port":    src_port,
-                        "dst_port":    dst_port,
-                        "action":      action.upper(),
-                        "app":         app,
-                        "policy":      line2[0] if line2 else "",
-                        "severity":    severity,
-                        "event_type":  "firewall_traffic",
-                        "message":     _message_from_event(
-                                           "PaloAlto", action, app,
-                                           src_ip, dst_ip, dst_port),
+                        "src_ip": src_ip,
+                        "dst_ip": dst_ip,
+                        "src_port": src_port,
+                        "dst_port": dst_port,
+                        "action": action.upper(),
+                        "app": app,
+                        "policy": line2[0] if line2 else "",
+                        "severity": severity,
+                        "event_type": "firewall_traffic",
+                        "message": _message_from_event(
+                            "PaloAlto", action, app,
+                            src_ip, dst_ip, dst_port),
                     })
                     i += 4
                     continue
@@ -198,7 +204,7 @@ class RealLogParser:
         print(f"[OK] PaloAlto: loaded {len(events)} events")
         return events
 
-    # ── Combined ───────────────────────────────────────────────────────────────
+    # ── Combined ────────────────────────────────────────────────────────────
 
     def load_all(self) -> List[Dict]:
         events = self.load_fortigate() + self.load_paloalto()
@@ -207,7 +213,7 @@ class RealLogParser:
         return events
 
 
-# ── Quick test ─────────────────────────────────────────────────────────────────
+# ── Quick test ──────────────────────────────────────────────────────────
 if __name__ == "__main__":
     import json
 
@@ -216,7 +222,7 @@ if __name__ == "__main__":
     events = parser.load_all()
 
     if events:
-        print(f"\nSample event:")
+        print("\nSample event:")
         print(json.dumps(events[0], indent=2))
 
         actions = {}
@@ -231,7 +237,8 @@ if __name__ == "__main__":
             severities[s] = severities.get(s, 0) + 1
         print(f"Severities: {severities}")
     else:
-        print("[ERROR] No events loaded. Make sure logs/ folder exists next to this script.")
+        print(
+            "[ERROR] No events loaded. Make sure logs/ folder exists next to this script.")
         print("Expected files:")
         print("  logs/FortiGate Sample logs.txt")
         print("  logs/PaloAlto sample traffic logs.txt")

@@ -5,6 +5,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("ResponseEngine")
 
+
 class ResponseEngine:
     _blocked_ips = set()
 
@@ -32,7 +33,8 @@ class ResponseEngine:
         # Here we treat any blocked IPs as evidence the firewall is active.
         return {
             "active_firewalls": ["Cisco-ASA-Firewall-01"] if cls._blocked_ips else [],
-            "blocked_ips": sorted(cls._blocked_ips),
+            "blocked_ips": sorted(
+                cls._blocked_ips),
         }
 
     @staticmethod

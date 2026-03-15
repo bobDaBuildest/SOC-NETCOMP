@@ -11,7 +11,8 @@ class AIAnalyst:
     def __init__(self):
         self.groq_key = os.getenv("GROQ_API_KEY", "")
 
-        # If retrieval dependencies are installed, initialize the playbook retriever.
+        # If retrieval dependencies are installed, initialize the playbook
+        # retriever.
         self._retriever = None
         try:
             from services.retrieval import MitigationRetriever
@@ -32,7 +33,8 @@ class AIAnalyst:
                 if matches:
                     mitigation_context = "\n\nRelevant remediation steps (from playbook):\n"
                     for m in matches:
-                        title = m.get("title") or m.get("pattern") or "Mitigation"
+                        title = m.get("title") or m.get(
+                            "pattern") or "Mitigation"
                         desc = m.get("description", "").strip()
                         if desc:
                             mitigation_context += f"- {title}: {desc}\n"
