@@ -171,7 +171,7 @@ class SOCChatbot:
             f"• 'Show KPIs'\n"
             f"• 'Block IP [address]'\n"
             f"• 'Correlate events'\n\n"
-            f"Set OPENAI_API_KEY for full AI-powered responses."
+            f"Set GROQ_API_KEY for full AI-powered responses."
         )
 
     def _handle_confirm_block(self, message: str) -> str:
