@@ -69,11 +69,8 @@ class SOCChatbot:
         self.pending_action = None
 
         print("[OK] SOC Chatbot initialized")
-        print(
-            f"   Groq API: {
-                '[OK] Key found' if self.api_key else '[ERROR] No key - set GROQ_API_KEY'}")
-        print(
-            f"   Event stream: [OK] {len(self.stream._event_buffer)} events loaded")
+        print(f"   Groq API: {'[OK] Key found' if self.api_key else '[ERROR] No key - set GROQ_API_KEY'}")
+        print(f"   Event stream: [OK] {len(self.stream._event_buffer)} events loaded")
 
     def _build_context(self) -> str:
         """Build current network context to inject into every prompt."""
@@ -105,9 +102,7 @@ class SOCChatbot:
             return response.choices[0].message.content
 
         except Exception as e:
-            return f"⚠️ AI unavailable: {
-                str(e)}\n\n{
-                self._mock_response(user_message)}"
+            return f"⚠️ AI unavailable: {str(e)}\n\n{self._mock_response(user_message)}"
 
     def _mock_response(self, message: str) -> str:
         """Rule-based fallback when no API key is available."""
