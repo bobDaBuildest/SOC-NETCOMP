@@ -65,15 +65,10 @@
     .quick-btn { background:#21262d; border:1px solid #30363d; color:#8b949e; padding:4px 10px; border-radius:4px; cursor:pointer; font-size:0.75rem; }
     .quick-btn:hover { background:#30363d; color:#c9d1d9; }
 
-    /* ── Attack inject bar ── */
-    .inject-bar { padding:8px 16px; border-top:1px solid #30363d; display:flex; gap:6px; flex-wrap:wrap; }
-    .inject-btn { background:#3d1a1a; border:1px solid #f85149; color:#f85149; padding:3px 10px; border-radius:4px; cursor:pointer; font-size:0.72rem; }
-    .inject-btn:hover { background:#5a2020; }
-
     ::-webkit-scrollbar { width:4px; }
     ::-webkit-scrollbar-track { background:#0d1117; }
     ::-webkit-scrollbar-thumb { background:#30363d; border-radius:2px; }
-  
+
     /* Device Modal */
     .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1000; justify-content:center; align-items:center; }
     .modal-overlay.active { display:flex; }
@@ -97,7 +92,95 @@
     .devices-list { margin-top:8px; }
     .device-tag { display:inline-block; background:#0d2818; border:1px solid #238636; color:#3fb950; border-radius:4px; padding:2px 8px; font-size:0.75rem; margin:2px; }
     .device-tag.unreachable { background:#2d0f0f; border-color:#f85149; color:#f85149; }
-</style>
+
+    /* ── Admin Eye Button ── */
+    #admin-eye-btn{position:fixed;top: 42px;right:16px;z-index:9999;background:transparent;border:none;cursor:pointer;padding:6px;border-radius:8px;transition:background .2s;}    #admin-eye-btn:hover{background:rgba(255,255,255,.08);}
+    #admin-eye-btn svg{display:block;}
+    #admin-eye-btn .eye-pulse{animation:eyePulse 2.6s ease-in-out infinite;}
+    @keyframes eyePulse{0%,100%{opacity:.4;}50%{opacity:1;}}
+    #admin-eye-btn.unlocked .eye-pulse{animation:none;opacity:1;}
+    #admin-eye-btn .lock-dot{fill:#f97316;transition:fill .3s;}
+    #admin-eye-btn.unlocked .lock-dot{fill:#22c55e;}
+
+    /* ── Auth Modal ── */
+    #admin-auth-overlay{display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);align-items:center;justify-content:center;}
+    #admin-auth-overlay.active{display:flex;}
+    #admin-auth-modal{background:#0d1117;border:1px solid #21262d;border-radius:16px;padding:36px 40px 32px;width:360px;box-shadow:0 24px 64px rgba(0,0,0,.6);font-family:'Segoe UI',sans-serif;color:#e6edf3;animation:modalIn .25s cubic-bezier(.34,1.56,.64,1);}
+    @keyframes modalIn{from{opacity:0;transform:scale(.88) translateY(12px);}to{opacity:1;transform:scale(1) translateY(0);}}
+    .adm-modal-icon{display:flex;justify-content:center;margin-bottom:20px;}
+    #admin-auth-modal h2{font-size:15px;font-weight:700;text-align:center;margin:0 0 4px;letter-spacing:.06em;text-transform:uppercase;color:#f0f6fc;}
+    #admin-auth-modal p{font-size:11px;text-align:center;color:#8b949e;margin:0 0 24px;}
+    #admin-auth-modal label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#8b949e;margin-bottom:8px;}
+    #admin-code-input{width:100%;box-sizing:border-box;background:#161b22;border:1px solid #30363d;border-radius:8px;padding:12px 14px;font-family:'Courier New',monospace;font-size:18px;letter-spacing:.22em;text-align:center;color:#f0f6fc;outline:none;transition:border-color .2s,box-shadow .2s;}
+    #admin-code-input:focus{border-color:#f97316;box-shadow:0 0 0 3px rgba(249,115,22,.18);}
+    #admin-code-input.adm-error{border-color:#f85149;box-shadow:0 0 0 3px rgba(248,81,73,.18);animation:admShake .35s ease;}
+    @keyframes admShake{0%,100%{transform:translateX(0);}20%{transform:translateX(-6px);}40%{transform:translateX(6px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
+    #admin-auth-error{font-size:11px;color:#f85149;text-align:center;margin-top:8px;min-height:16px;}
+    #admin-auth-submit{margin-top:20px;width:100%;background:linear-gradient(135deg,#f97316,#ea580c);border:none;border-radius:8px;padding:12px;cursor:pointer;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#fff;transition:opacity .2s;}
+    #admin-auth-submit:hover{opacity:.88;}
+    #admin-auth-cancel{margin-top:10px;width:100%;background:transparent;border:1px solid #21262d;border-radius:8px;padding:10px;cursor:pointer;font-size:11px;color:#8b949e;transition:border-color .2s,color .2s;}
+    #admin-auth-cancel:hover{border-color:#8b949e;color:#e6edf3;}
+
+    /* ── Inject Panel ── */
+    #admin-inject-panel{display:none;position:fixed;top:0;right:0;width:480px;height:100vh;background:#0d1117;border-left:1px solid #21262d;z-index:9998;font-family:'Segoe UI',sans-serif;color:#e6edf3;flex-direction:column;box-shadow:-12px 0 48px rgba(0,0,0,.5);animation:admSlideIn .28s cubic-bezier(.16,1,.3,1);}
+    #admin-inject-panel.active{display:flex;}
+    @keyframes admSlideIn{from{transform:translateX(100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+    .adm-header{display:flex;align-items:center;gap:12px;padding:18px 20px 16px;border-bottom:1px solid #21262d;background:#161b22;}
+    .adm-badge{background:linear-gradient(135deg,#f97316,#dc2626);border-radius:6px;padding:3px 8px;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#fff;}
+    .adm-header h3{flex:1;margin:0;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#f0f6fc;}
+    #adm-close-btn{background:transparent;border:none;cursor:pointer;color:#8b949e;padding:4px;border-radius:6px;font-size:18px;line-height:1;transition:color .2s;}
+    #adm-close-btn:hover{color:#f0f6fc;}
+    .adm-session-bar{padding:10px 20px;background:rgba(34,197,94,.08);border-bottom:1px solid rgba(34,197,94,.2);display:flex;align-items:center;gap:8px;font-size:10px;color:#22c55e;letter-spacing:.05em;}
+    .adm-session-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px #22c55e;animation:admBlink 1.4s ease-in-out infinite;flex-shrink:0;}
+    @keyframes admBlink{0%,100%{opacity:1;}50%{opacity:.3;}}
+    .adm-tabs{display:flex;border-bottom:1px solid #21262d;padding:0 12px;background:#161b22;}
+    .adm-tab{padding:10px 14px;cursor:pointer;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#8b949e;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;}
+    .adm-tab:hover{color:#e6edf3;}
+    .adm-tab.active{color:#f97316;border-bottom-color:#f97316;}
+    .adm-content{flex:1;overflow-y:auto;padding:16px 20px;}
+    .adm-content::-webkit-scrollbar{width:4px;}
+    .adm-content::-webkit-scrollbar-thumb{background:#30363d;border-radius:2px;}
+    .adm-pane{display:none;}
+    .adm-pane.active{display:block;}
+    .adm-cat{margin-bottom:20px;}
+    .adm-cat-label{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#f97316;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+    .adm-cat-label::after{content:'';flex:1;height:1px;background:rgba(249,115,22,.2);}
+    .adm-card{background:#161b22;border:1px solid #21262d;border-radius:10px;padding:12px 14px;margin-bottom:8px;transition:border-color .2s,background .2s;position:relative;overflow:hidden;}
+    .adm-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--sc,#f97316);border-radius:3px 0 0 3px;}
+    .adm-card:hover{border-color:var(--sc,#f97316);background:rgba(249,115,22,.04);}
+    .adm-card.fired{border-color:#22c55e!important;background:rgba(34,197,94,.06)!important;}
+    .adm-card.fired::before{background:#22c55e;}
+    .adm-card-top{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+    .adm-card-name{font-size:12px;font-weight:700;color:#f0f6fc;flex:1;}
+    .adm-sev{font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 6px;border-radius:4px;color:#fff;}
+    .adm-sev.sc{background:#dc2626;}
+    .adm-sev.sh{background:#f97316;}
+    .adm-sev.sm{background:#eab308;color:#000;}
+    .adm-sev.sl{background:#3b82f6;}
+    .adm-card-desc{font-size:10px;color:#8b949e;line-height:1.5;margin-bottom:8px;}
+    .adm-card-payload{font-family:'Courier New',monospace;font-size:10px;color:#79c0ff;background:#0d1117;border:1px solid #21262d;border-radius:6px;padding:7px 10px;white-space:pre-wrap;word-break:break-all;margin-bottom:8px;}
+    .adm-card-actions{display:flex;gap:6px;}
+    .adm-btn{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:5px 10px;border-radius:5px;cursor:pointer;border:none;transition:opacity .2s,transform .1s;}
+    .adm-btn:active{transform:scale(.96);}
+    .adm-btn-fire{background:#dc2626;color:#fff;}
+    .adm-btn-fire:hover{opacity:.85;}
+    .adm-btn-copy{background:#21262d;color:#e6edf3;}
+    .adm-btn-copy:hover{background:#30363d;}
+    .adm-log{background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:12px;font-family:'Courier New',monospace;font-size:10px;color:#8b949e;line-height:1.8;height:300px;overflow-y:auto;}
+    .adm-log::-webkit-scrollbar{width:3px;}
+    .adm-log::-webkit-scrollbar-thumb{background:#21262d;}
+    .adm-log-entry{margin-bottom:2px;}
+    .alt{color:#4d5566;}.alf{color:#f97316;}.alo{color:#22c55e;}.ali{color:#3b82f6;}.alw{color:#eab308;}.alm{color:#e6edf3;}
+    .adm-footer{padding:12px 20px;border-top:1px solid #21262d;background:#0d1117;display:flex;align-items:center;justify-content:space-between;}
+    .adm-footer-stat{font-size:9px;color:#8b949e;letter-spacing:.05em;}
+    .adm-footer-stat span{color:#f97316;font-weight:700;}
+    #adm-lock-btn{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:5px 12px;background:#21262d;border:1px solid #30363d;border-radius:6px;color:#8b949e;cursor:pointer;transition:all .2s;}
+    #adm-lock-btn:hover{border-color:#f97316;color:#f97316;}
+
+    /* ── Toast ── */
+    #adm-toast{position:fixed;bottom:24px;right:24px;z-index:10001;background:#161b22;border:1px solid #21262d;border-radius:10px;padding:12px 18px;font-size:11px;color:#e6edf3;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.5);transform:translateY(20px);opacity:0;transition:transform .3s,opacity .3s;pointer-events:none;}
+    #adm-toast.show{transform:translateY(0);opacity:1;}
+  </style>
 </head>
 <body>
 
@@ -167,17 +250,196 @@
       <button onclick="sendMessage()">Send</button>
     </div>
 
-    <div class="inject-bar">
-      <span style="font-size:0.72rem;color:#8b949e;padding:4px 0">Inject attack:</span>
-      <button class="inject-btn" onclick="injectAttack('port_scan')">Port Scan</button>
-      <button class="inject-btn" onclick="injectAttack('brute_force_ssh')">SSH Brute Force</button>
-      <button class="inject-btn" onclick="injectAttack('data_exfiltration')">Data Exfiltration</button>
-      <button class="inject-btn" onclick="injectAttack('ddos')">DDoS</button>
-      <button class="inject-btn" onclick="injectAttack('lateral_movement')">Lateral Movement</button>
-    </div>
   </div>
 
 </div>
+
+<!-- ── Admin Eye Button ── -->
+<button id="admin-eye-btn" title="Admin / Hidden Features">
+  <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g class="eye-pulse">
+      <ellipse cx="13" cy="13" rx="11" ry="7" stroke="#8b949e" stroke-width="1.5" fill="none"/>
+      <circle cx="13" cy="13" r="3.2" fill="#8b949e"/>
+      <circle cx="14.2" cy="11.8" r="1.1" fill="#0d1117"/>
+    </g>
+    <circle class="lock-dot" cx="20" cy="6" r="3.5"/>
+  </svg>
+</button>
+
+<!-- ── Auth Modal ── -->
+<div id="admin-auth-overlay">
+  <div id="admin-auth-modal">
+    <div class="adm-modal-icon">
+      <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+        <circle cx="26" cy="26" r="25" stroke="#f97316" stroke-width="1.5" opacity="0.3"/>
+        <ellipse cx="26" cy="26" rx="18" ry="11" stroke="#f97316" stroke-width="1.5"/>
+        <circle cx="26" cy="26" r="5.5" fill="#f97316" opacity="0.9"/>
+        <circle cx="28" cy="24" r="2" fill="#0d1117"/>
+        <circle cx="35" cy="11" r="4" fill="#dc2626"/>
+        <path d="M33 13 L37 9" stroke="#dc2626" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <h2>Admin Access</h2>
+    <p>INJECT ATTACK MODULE — RESTRICTED</p>
+    <label for="admin-code-input">Administrator Code</label>
+    <div style="position:relative;">
+  <input id="admin-code-input" type="password" placeholder="● ● ● ● ● ● ● ●" maxlength="16" autocomplete="off" spellcheck="false"/>
+  <button id="adm-toggle-pw" type="button" onclick="(function(){const i=document.getElementById('admin-code-input');const b=document.getElementById('adm-toggle-pw');i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'👁':'🦴';})()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:transparent;border:none;cursor:pointer;font-size:14px;color:#8b949e;padding:0;line-height:1;">👁</button>
+</div>
+    <div id="admin-auth-error"></div>
+    <button id="admin-auth-submit">Authenticate</button>
+    <button id="admin-auth-cancel">Cancel</button>
+  </div>
+</div>
+
+<!-- ── Admin Inject Panel ── -->
+<div id="admin-inject-panel">
+  <div class="adm-header">
+    <div class="adm-badge">ADMIN</div>
+    <h3>Inject Attack Module</h3>
+    <button id="adm-close-btn" title="Close">✕</button>
+  </div>
+  <div class="adm-session-bar">
+    <div class="adm-session-dot"></div>
+    <span>ADMIN SESSION ACTIVE — TESTING MODE ONLY</span>
+  </div>
+  <div class="adm-tabs">
+    <div class="adm-tab active" data-tab="network">Network</div>
+    <div class="adm-tab" data-tab="webapp">Web App</div>
+    <div class="adm-tab" data-tab="auth">Auth</div>
+    <div class="adm-tab" data-tab="log">Log</div>
+  </div>
+  <div class="adm-content">
+
+    <!-- NETWORK -->
+    <div class="adm-pane active" id="adm-tab-network">
+      <div class="adm-cat">
+        <div class="adm-cat-label">Port Scanning</div>
+        <div class="adm-card" data-name="Rapid Port Sweep" data-scenario="port_scan" style="--sc:#f97316">
+          <div class="adm-card-top"><span class="adm-card-name">Rapid Port Sweep</span><span class="adm-sev sh">HIGH</span></div>
+          <div class="adm-card-desc">Fast SYN scan across common ports. Triggers port-scan anomaly detector.</div>
+          <div class="adm-card-payload">POST /api/events/inject {"scenario":"port_scan"}</div>
+          <div class="adm-card-actions"><button class="adm-btn adm-btn-fire">⚡ Fire</button><button class="adm-btn adm-btn-copy">⧉ Copy</button></div>
+        </div>
+        <div class="adm-card" data-name="Stealth XMAS Scan" data-scenario="port_scan" style="--sc:#eab308">
+          <div class="adm-card-top"><span class="adm-card-name">Stealth XMAS Scan</span><span class="adm-sev sm">MED</span></div>
+          <div class="adm-card-desc">TCP packets with FIN, URG, PSH flags. Tests evasion detection rules.</div>
+          <div class="adm-card-payload">POST /api/events/inject {"scenario":"port_scan","variant":"xmas"}</div>
+          <div class="adm-card-actions"><button class="adm-btn adm-btn-fire">⚡ Fire</button><button class="adm-btn adm-btn-copy">⧉ Copy</button></div>
+        </div>
+      </div>
+      <div class="adm-cat">
+        <div class="adm-cat-label">DDoS Simulation</div>
+        <div class="adm-card" data-name="UDP Flood Burst" data-scenario="ddos" style="--sc:#dc2626">
+          <div class="adm-card-top"><span class="adm-card-name">UDP Flood Burst</span><span class="adm-sev sc">CRITICAL</span></div>
+          <div class="adm-card-desc">High-volume UDP packet burst. Tests volumetric DDoS detection threshold.</div>
+          <div class="adm-card-payload">POST /api/events/inject {"scenario":"ddos"}</div>
+          <div class="adm-card-actions"><button class="adm-btn adm-btn-fire">⚡ Fire</button><button class="adm-btn adm-btn-copy">⧉ Copy</button></div>
+        </div>
+        <div class="adm-card" data-name="Lateral Movement" data-scenario="lateral_movement" style="--sc:#dc2626">
+          <div class="adm-card-top"><span class="adm-card-name">Lateral Movement</span><span class="adm-sev sc">CRITICAL</span></div>
+          <div class="adm-card-desc">Worm-like SMB lateral movement. Triggers network topology anomaly scoring.</div>
+          <div class="adm-card-payload">POST /api/events/inject {"scenario":"lateral_movement"}</div>
+          <div class="adm-card-actions"><button class="adm-btn adm-btn-fire">⚡ Fire</button><button class="adm-btn adm-btn-copy">⧉ Copy</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEB APP -->
+    <div class="adm-pane" id="adm-tab-webapp">
+      <div class="adm-cat">
+        <div class="adm-cat-label">Injection Attacks</div>
+        <div class="adm-card" data-name="SQL Injection" data-scenario="sql_injection" style="--sc:#dc2626">
+          <div class="adm-card-top"><span class="adm-card-name">SQL Injection — UNION</span><span class="adm-sev sc">CRITICAL</span></div>
+          <div class="adm-card-desc">UNION-based SQLi payload targeting login endpoint. Tests WAF response.</div>
+          <div class="adm-card-payload">POST /api/events/inject {"scenario":"sql_injection"}</div>
+          <div class="adm-card-actions"><button class="adm-btn adm-btn-fire">⚡ Fire</button><button class="adm-btn adm-btn-copy">⧉ Copy</button></div>
+        </div>
+        <div class="adm-card" data-name="XSS Stored Inject" data-scenario="xss" style="--sc:#f97316">
+          <div class="adm-card-top"><span class="adm-card-name">XSS Stored Inject</span><span class="adm-sev sh">HIGH</span></div>
+          <div class="adm-card-desc">Stored XSS via comment field. Validates input sanitisation alert rules.</div>
+          <div class="adm-card-payload">POST /api/events/inject {"scenario":"xss"}</div>
+          <div class="adm-card-actions"><button class="adm-btn adm-btn-fire">⚡ Fire</button><button class="adm-btn adm-btn-copy">⧉ Copy</button></div>
+        </div>
+      </div>
+      <div class="adm-cat">
+        <div class="adm-cat-label">Exfiltration</div>
+        <div class="adm-card" data-name="Data Exfiltration" data-scenario="data_exfiltration" style="--sc:#f97316">
+          <div class="adm-card-top"><span class="adm-card-name">Data Exfiltration</span><span class="adm-sev sh">HIGH</span></div>
+          <div class="adm-card-desc">Simulates large outbound data transfer to external IP. Tests DLP rules.</div>
+          <div class="adm-card-payload">POST /api/events/inject {"scenario":"data_exfiltration"}</div>
+          <div class="adm-card-actions"><button class="adm-btn adm-btn-fire">⚡ Fire</button><button class="adm-btn adm-btn-copy">⧉ Copy</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AUTH -->
+    <div class="adm-pane" id="adm-tab-auth">
+      <div class="adm-cat">
+        <div class="adm-cat-label">Brute Force</div>
+        <div class="adm-card" data-name="SSH Brute Force" data-scenario="brute_force_ssh" style="--sc:#f97316">
+          <div class="adm-card-top"><span class="adm-card-name">SSH Brute Force</span><span class="adm-sev sh">HIGH</span></div>
+          <div class="adm-card-desc">Rapid SSH password attempts. Validates threshold-based lockout alerts.</div>
+          <div class="adm-card-payload">POST /api/events/inject {"scenario":"brute_force_ssh"}</div>
+          <div class="adm-card-actions"><button class="adm-btn adm-btn-fire">⚡ Fire</button><button class="adm-btn adm-btn-copy">⧉ Copy</button></div>
+        </div>
+        <div class="adm-card" data-name="Credential Stuffing" data-scenario="brute_force_ssh" style="--sc:#eab308">
+          <div class="adm-card-top"><span class="adm-card-name">Credential Stuffing</span><span class="adm-sev sm">MED</span></div>
+          <div class="adm-card-desc">Distributed login attempts with leaked credentials. Tests distributed brute-force detection.</div>
+          <div class="adm-card-payload">POST /api/events/inject {"scenario":"brute_force_ssh","variant":"stuffing"}</div>
+          <div class="adm-card-actions"><button class="adm-btn adm-btn-fire">⚡ Fire</button><button class="adm-btn adm-btn-copy">⧉ Copy</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOG -->
+    <div class="adm-pane" id="adm-tab-log">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#8b949e;">Inject Activity Log</div>
+        <button id="adm-log-clear" style="font-size:9px;color:#8b949e;background:#161b22;border:1px solid #21262d;border-radius:5px;padding:4px 10px;cursor:pointer;">CLEAR</button>
+      </div>
+      <div class="adm-log" id="adm-log-area">
+        <div class="adm-log-entry"><span class="alt">[--:--:--]</span> <span class="ali">INFO</span> <span class="alm">Admin module loaded. Authenticate to begin.</span></div>
+      </div>
+    </div>
+
+  </div>
+  <div class="adm-footer">
+    <div class="adm-footer-stat">Fired: <span id="adm-stat-fired">0</span> &nbsp;|&nbsp; Copied: <span id="adm-stat-copied">0</span></div>
+    <button id="adm-lock-btn">🔒 Lock &amp; Exit</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="adm-toast"><span id="adm-toast-icon">✓</span><span id="adm-toast-msg">Done</span></div>
+
+<!-- Add Device Modal -->
+<div class="modal-overlay" id="deviceModal">
+  <div class="modal">
+    <h3>+ Connect New Device</h3>
+    <label>Device Type</label>
+    <select id="d-type">
+      <option value="cisco_iosxe">Cisco IOS XE (RESTCONF)</option>
+      <option value="fortigate" disabled>FortiGate (coming soon)</option>
+      <option value="paloalto" disabled>PaloAlto (coming soon)</option>
+    </select>
+    <label>Host / IP Address</label>
+    <input type="text" id="d-host" placeholder="192.168.1.1 or sandbox-iosxe-latest-1.cisco.com" />
+    <label>Username</label>
+    <input type="text" id="d-user" placeholder="admin" />
+    <label>Password</label>
+    <input type="password" id="d-pass" placeholder="password" />
+    <label>Port (default 443)</label>
+    <input type="number" id="d-port" value="443" />
+    <div class="device-status" id="d-status"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeDeviceModal()">Cancel</button>
+      <button class="btn-connect" onclick="connectDevice()">Connect</button>
+    </div>
+  </div>
+</div>
+
+<div id="connected-devices" class="devices-list" style="padding:6px 16px;"></div>
 
 <script>
   const API = "http://localhost:8000";
@@ -235,9 +497,9 @@
   function filterEvents(type, btn) {
     document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
-    if (type === "all")     renderEvents(allEvents);
+    if (type === "all")          renderEvents(allEvents);
     else if (type === "attacks") renderEvents(allEvents.filter(e => ["DENY","block","ALERT"].includes(e.action)));
-    else renderEvents(allEvents.filter(e => e.severity === type));
+    else                         renderEvents(allEvents.filter(e => e.severity === type));
   }
 
   // ── Chat ───────────────────────────────────────────────────────────────────
@@ -264,10 +526,8 @@
     const msg   = input.value.trim();
     if (!msg) return;
     input.value = "";
-
     addMessage(msg, "user");
     const loadingDiv = addMessage("Analyzing...", "bot loading");
-
     try {
       const r = await fetch(`${API}/api/chat`, {
         method: "POST",
@@ -294,26 +554,10 @@
     sendQuick(`Analyze this event: ${type} from ${ip} on ${device}. What happened and what should I do?`);
   }
 
-  async function injectAttack(scenario) {
-    try {
-      const r = await fetch(`${API}/api/events/inject`, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({scenario})
-      });
-      const d = await r.json();
-      addMessage(`🚨 Injected "${scenario}" attack (${d.injected} events). Ask me to analyze it!`, "bot");
-      loadKPIs();
-      loadEvents();
-    } catch(e) {
-      addMessage("⚠️ Could not inject attack — is the backend running?", "bot");
-    }
-  }
-
   // ── Init ───────────────────────────────────────────────────────────────────
   loadKPIs();
   loadEvents();
-  setInterval(() => { loadKPIs(); loadEvents(); }, 30000); // Auto-refresh every 30s
+  setInterval(() => { loadKPIs(); loadEvents(); }, 30000);
 
   function openDeviceModal() {
     document.getElementById('deviceModal').classList.add('active');
@@ -332,16 +576,13 @@
     const port = parseInt(document.getElementById('d-port').value) || 443;
     const type = document.getElementById('d-type').value;
     const statusEl = document.getElementById('d-status');
-
     if (!host || !user || !pass) {
       statusEl.className = 'device-status err';
       statusEl.textContent = 'Please fill in all fields.';
       return;
     }
-
     statusEl.className = 'device-status loading';
     statusEl.textContent = 'Connecting to ' + host + '...';
-
     try {
       const res = await fetch('/api/device/connect', {
         method: 'POST',
@@ -349,7 +590,6 @@
         body: JSON.stringify({ host, username: user, password: pass, port, device_type: type })
       });
       const data = await res.json();
-
       if (data.status === 'connected') {
         statusEl.className = 'device-status ok';
         statusEl.textContent = '[OK] Connected to ' + data.hostname + ' (' + data.host + ')';
@@ -378,43 +618,176 @@
     } catch(e) {}
   }
 
-  // Load connected devices on startup
   loadConnectedDevices();
 </script>
 
-<!-- Add Device Modal -->
-<div class="modal-overlay" id="deviceModal">
-  <div class="modal">
-    <h3>+ Connect New Device</h3>
+<!-- ================================================================
+     ADMIN INJECT MODULE
+     Admin code: NETCOMP26  ← change this in the ADMIN_CODE variable
+     ================================================================ -->
+<script>
+(function () {
+  'use strict';
 
-    <label>Device Type</label>
-    <select id="d-type">
-      <option value="cisco_iosxe">Cisco IOS XE (RESTCONF)</option>
-      <option value="fortigate" disabled>FortiGate (coming soon)</option>
-      <option value="paloalto" disabled>PaloAlto (coming soon)</option>
-    </select>
+  const ADMIN_CODE  = 'NETCOMP26';     // ← change to your secret code
+  const SESSION_TTL = 30 * 60 * 1000; // 30 min auto-lock
+  const API_BASE    = 'http://localhost:8000';
 
-    <label>Host / IP Address</label>
-    <input type="text" id="d-host" placeholder="192.168.1.1 or sandbox-iosxe-latest-1.cisco.com" />
+  let adminUnlocked = false;
+  let sessionTimer  = null;
+  let firedCount    = 0;
+  let copiedCount   = 0;
 
-    <label>Username</label>
-    <input type="text" id="d-user" placeholder="admin" />
+  const eyeBtn    = document.getElementById('admin-eye-btn');
+  const authOvr   = document.getElementById('admin-auth-overlay');
+  const codeInput = document.getElementById('admin-code-input');
+  const authErr   = document.getElementById('admin-auth-error');
+  const submitBtn = document.getElementById('admin-auth-submit');
+  const cancelBtn = document.getElementById('admin-auth-cancel');
+  const panel     = document.getElementById('admin-inject-panel');
+  const closeBtn  = document.getElementById('adm-close-btn');
+  const lockBtn   = document.getElementById('adm-lock-btn');
+  const logArea   = document.getElementById('adm-log-area');
+  const logClear  = document.getElementById('adm-log-clear');
+  const statF     = document.getElementById('adm-stat-fired');
+  const statC     = document.getElementById('adm-stat-copied');
 
-    <label>Password</label>
-    <input type="password" id="d-pass" placeholder="password" />
+  function openAuth() {
+    authOvr.classList.add('active');
+    codeInput.value = '';
+    authErr.textContent = '';
+    codeInput.classList.remove('adm-error');
+    setTimeout(() => codeInput.focus(), 60);
+  }
+  function closeAuth() { authOvr.classList.remove('active'); }
 
-    <label>Port (default 443)</label>
-    <input type="number" id="d-port" value="443" />
+  function authenticate() {
+    if (codeInput.value.trim().toUpperCase() === ADMIN_CODE) {
+      adminUnlocked = true;
+      eyeBtn.classList.add('unlocked');
+      closeAuth();
+      panel.classList.add('active');
+      startSession();
+      admLog('INFO', 'Admin authenticated. Session active (30 min).');
+      showToast('✓', 'Admin session unlocked', '#22c55e');
+    } else {
+      codeInput.classList.add('adm-error');
+      authErr.textContent = 'Invalid administrator code.';
+      setTimeout(() => codeInput.classList.remove('adm-error'), 600);
+      admLog('WARN', 'Failed authentication attempt.');
+    }
+  }
 
-    <div class="device-status" id="d-status"></div>
+  function lockSession() {
+    adminUnlocked = false;
+    eyeBtn.classList.remove('unlocked');
+    panel.classList.remove('active');
+    clearTimeout(sessionTimer);
+    admLog('INFO', 'Session locked.');
+  }
 
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeDeviceModal()">Cancel</button>
-      <button class="btn-connect" onclick="connectDevice()">Connect</button>
-    </div>
-  </div>
-</div>
+  function startSession() {
+    clearTimeout(sessionTimer);
+    sessionTimer = setTimeout(() => {
+      lockSession();
+      showToast('🔒', 'Session expired — re-authenticate', '#f97316');
+    }, SESSION_TTL);
+  }
 
-<div id="connected-devices" class="devices-list" style="padding:6px 16px;"></div>
+  eyeBtn.addEventListener('click', () => {
+    if (adminUnlocked) panel.classList.toggle('active');
+    else openAuth();
+  });
+  submitBtn.addEventListener('click', authenticate);
+  codeInput.addEventListener('keydown', e => { if (e.key === 'Enter') authenticate(); });
+  cancelBtn.addEventListener('click', closeAuth);
+  authOvr.addEventListener('click', e => { if (e.target === authOvr) closeAuth(); });
+  closeBtn.addEventListener('click', () => panel.classList.remove('active'));
+  lockBtn.addEventListener('click', () => { lockSession(); showToast('🔒', 'Locked', '#8b949e'); });
+
+  // Tabs
+  document.querySelectorAll('.adm-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.adm-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.adm-pane').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('adm-tab-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+
+  // Attack cards
+  document.querySelectorAll('.adm-card').forEach(card => {
+    const fireBtn  = card.querySelector('.adm-btn-fire');
+    const copyBtn  = card.querySelector('.adm-btn-copy');
+    const name     = card.dataset.name;
+    const scenario = card.dataset.scenario;
+    const payload  = card.querySelector('.adm-card-payload').textContent.trim();
+
+    fireBtn.addEventListener('click', async () => {
+      fireBtn.textContent = '✓ Fired';
+      fireBtn.style.background = '#22c55e';
+      card.classList.add('fired');
+      setTimeout(() => { fireBtn.textContent = '⚡ Fire'; fireBtn.style.background = ''; card.classList.remove('fired'); }, 1800);
+      firedCount++; statF.textContent = firedCount;
+      admLog('FIRE', 'Inject: ' + name);
+      showToast('⚡', 'Fired: ' + name, '#f97316');
+
+      // Fire to actual backend endpoint
+      try {
+        const r = await fetch(API_BASE + '/api/events/inject', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scenario })
+        });
+        const d = await r.json();
+        admLog('OK', 'Response ' + r.status + ': ' + JSON.stringify(d).slice(0, 80));
+        // Refresh dashboard after inject
+        if (typeof loadKPIs === 'function') { loadKPIs(); loadEvents(); }
+        // Also show in chat
+        if (typeof addMessage === 'function') {
+          addMessage('🚨 [ADMIN] Injected "' + name + '" attack (' + (d.injected || '?') + ' events). Ask me to analyze it!', 'bot');
+        }
+      } catch(e) {
+        admLog('WARN', 'Backend unreachable: ' + e.message.slice(0, 50));
+      }
+    });
+
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(payload).catch(() => {});
+      copyBtn.textContent = '✓ Copied';
+      setTimeout(() => copyBtn.textContent = '⧉ Copy', 1500);
+      copiedCount++; statC.textContent = copiedCount;
+      admLog('INFO', 'Copied: ' + name);
+      showToast('⧉', 'Copied: ' + name, '#3b82f6');
+    });
+  });
+
+  logClear.addEventListener('click', () => { logArea.innerHTML = ''; admLog('INFO', 'Log cleared.'); });
+
+  function admLog(type, msg) {
+    const now = new Date();
+    const ts  = [now.getHours(), now.getMinutes(), now.getSeconds()].map(n => String(n).padStart(2,'0')).join(':');
+    const cls = { FIRE:'alf', OK:'alo', INFO:'ali', WARN:'alw' }[type] || 'ali';
+    const el  = document.createElement('div');
+    el.className = 'adm-log-entry';
+    el.innerHTML = '<span class="alt">[' + ts + ']</span> <span class="' + cls + '">' + type + '</span> <span class="alm">' + msg + '</span>';
+    logArea.appendChild(el);
+    logArea.scrollTop = logArea.scrollHeight;
+  }
+
+  let toastTimer;
+  function showToast(icon, msg, color) {
+    const t = document.getElementById('adm-toast');
+    clearTimeout(toastTimer);
+    document.getElementById('adm-toast-msg').textContent  = msg;
+    document.getElementById('adm-toast-icon').textContent = icon;
+    t.style.borderColor = color || '#22c55e';
+    t.classList.add('show');
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+  }
+
+})();
+</script>
+
 </body>
 </html>
