@@ -1,3 +1,4 @@
+from asyncio import events
 import os
 import sys
 
@@ -173,15 +174,16 @@ def inject_attack(req: InjectRequest):
     """Inject a mock attack scenario for demo/testing."""
     events = chatbot.stream.inject_attack(req.scenario)
     if not events:
-        return {
-            "error": f"Unknown scenario '{
-                req.scenario}'",
+         return {
+            "error": f"Unknown scenario '{req.scenario}'",
             "available": [
                 "port_scan",
                 "brute_force_ssh",
                 "data_exfiltration",
                 "ddos",
-                "lateral_movement"]}
+                "lateral_movement",
+            ],
+        }
     return {"injected": len(events),
             "scenario": req.scenario,
             "events": events[:3]}
@@ -376,7 +378,7 @@ def get_stats(db: sqlite3.Connection = Depends(get_db)):
     anomaly_rate = attack_events / total_events if total_events > 0 else 0.0
 
     return {
-        "total_events": total_events,
+        "total_processed": total_events,
         "attack_events": attack_events,
         "anomaly_rate": anomaly_rate,
         "critical_events": critical_events,
