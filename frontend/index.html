@@ -65,11 +65,6 @@
     .quick-btn { background:#21262d; border:1px solid #30363d; color:#8b949e; padding:4px 10px; border-radius:4px; cursor:pointer; font-size:0.75rem; }
     .quick-btn:hover { background:#30363d; color:#c9d1d9; }
 
-    /* ── Attack inject bar ── */
-    .inject-bar { padding:8px 16px; border-top:1px solid #30363d; display:flex; gap:6px; flex-wrap:wrap; }
-    .inject-btn { background:#3d1a1a; border:1px solid #f85149; color:#f85149; padding:3px 10px; border-radius:4px; cursor:pointer; font-size:0.72rem; }
-    .inject-btn:hover { background:#5a2020; }
-
     ::-webkit-scrollbar { width:4px; }
     ::-webkit-scrollbar-track { background:#0d1117; }
     ::-webkit-scrollbar-thumb { background:#30363d; border-radius:2px; }
@@ -194,17 +189,196 @@
       <button onclick="sendMessage()">Send</button>
     </div>
 
-    <div class="inject-bar">
-      <span style="font-size:0.72rem;color:#8b949e;padding:4px 0">Inject attack:</span>
-      <button class="inject-btn" onclick="injectAttack('port_scan')">Port Scan</button>
-      <button class="inject-btn" onclick="injectAttack('brute_force_ssh')">SSH Brute Force</button>
-      <button class="inject-btn" onclick="injectAttack('data_exfiltration')">Data Exfiltration</button>
-      <button class="inject-btn" onclick="injectAttack('ddos')">DDoS</button>
-      <button class="inject-btn" onclick="injectAttack('lateral_movement')">Lateral Movement</button>
-    </div>
   </div>
 
 </div>
+
+<!-- ── Admin Eye Button ── -->
+<button id="admin-eye-btn" title="Admin / Hidden Features">
+  <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g class="eye-pulse">
+      <ellipse cx="13" cy="13" rx="11" ry="7" stroke="#8b949e" stroke-width="1.5" fill="none"/>
+      <circle cx="13" cy="13" r="3.2" fill="#8b949e"/>
+      <circle cx="14.2" cy="11.8" r="1.1" fill="#0d1117"/>
+    </g>
+    <circle class="lock-dot" cx="20" cy="6" r="3.5"/>
+  </svg>
+</button>
+
+<!-- ── Auth Modal ── -->
+<div id="admin-auth-overlay">
+  <div id="admin-auth-modal">
+    <div class="adm-modal-icon">
+      <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+        <circle cx="26" cy="26" r="25" stroke="#f97316" stroke-width="1.5" opacity="0.3"/>
+        <ellipse cx="26" cy="26" rx="18" ry="11" stroke="#f97316" stroke-width="1.5"/>
+        <circle cx="26" cy="26" r="5.5" fill="#f97316" opacity="0.9"/>
+        <circle cx="28" cy="24" r="2" fill="#0d1117"/>
+        <circle cx="35" cy="11" r="4" fill="#dc2626"/>
+        <path d="M33 13 L37 9" stroke="#dc2626" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <h2>Admin Access</h2>
+    <p>INJECT ATTACK MODULE — RESTRICTED</p>
+    <label for="admin-code-input">Administrator Code</label>
+    <div style="position:relative;">
+  <input id="admin-code-input" type="password" placeholder="● ● ● ● ● ● ● ●" maxlength="16" autocomplete="off" spellcheck="false"/>
+  <button id="adm-toggle-pw" type="button" onclick="(function(){const i=document.getElementById('admin-code-input');const b=document.getElementById('adm-toggle-pw');i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'👁':'🦴';})()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:transparent;border:none;cursor:pointer;font-size:14px;color:#8b949e;padding:0;line-height:1;">👁</button>
+</div>
+    <div id="admin-auth-error"></div>
+    <button id="admin-auth-submit">Authenticate</button>
+    <button id="admin-auth-cancel">Cancel</button>
+  </div>
+</div>
+
+<!-- ── Admin Inject Panel ── -->
+<div id="admin-inject-panel">
+  <div class="adm-header">
+    <div class="adm-badge">ADMIN</div>
+    <h3>Inject Attack Module</h3>
+    <button id="adm-close-btn" title="Close">✕</button>
+  </div>
+  <div class="adm-session-bar">
+    <div class="adm-session-dot"></div>
+    <span>ADMIN SESSION ACTIVE — TESTING MODE ONLY</span>
+  </div>
+  <div class="adm-tabs">
+    <div class="adm-tab active" data-tab="network">Network</div>
+    <div class="adm-tab" data-tab="webapp">Web App</div>
+    <div class="adm-tab" data-tab="auth">Auth</div>
+    <div class="adm-tab" data-tab="log">Log</div>
+  </div>
+  <div class="adm-content">
+
+    <!-- NETWORK -->
+    <div class="adm-pane active" id="adm-tab-network">
+      <div class="adm-cat">
+        <div class="adm-cat-label">Port Scanning</div>
+        <div class="adm-card" data-name="Rapid Port Sweep" data-scenario="port_scan" style="--sc:#f97316">
+          <div class="adm-card-top"><span class="adm-card-name">Rapid Port Sweep</span><span class="adm-sev sh">HIGH</span></div>
+          <div class="adm-card-desc">Fast SYN scan across common ports. Triggers port-scan anomaly detector.</div>
+          <div class="adm-card-payload">POST /api/events/inject {"scenario":"port_scan"}</div>
+          <div class="adm-card-actions"><button class="adm-btn adm-btn-fire">⚡ Fire</button><button class="adm-btn adm-btn-copy">⧉ Copy</button></div>
+        </div>
+        <div class="adm-card" data-name="Stealth XMAS Scan" data-scenario="port_scan" style="--sc:#eab308">
+          <div class="adm-card-top"><span class="adm-card-name">Stealth XMAS Scan</span><span class="adm-sev sm">MED</span></div>
+          <div class="adm-card-desc">TCP packets with FIN, URG, PSH flags. Tests evasion detection rules.</div>
+          <div class="adm-card-payload">POST /api/events/inject {"scenario":"port_scan","variant":"xmas"}</div>
+          <div class="adm-card-actions"><button class="adm-btn adm-btn-fire">⚡ Fire</button><button class="adm-btn adm-btn-copy">⧉ Copy</button></div>
+        </div>
+      </div>
+      <div class="adm-cat">
+        <div class="adm-cat-label">DDoS Simulation</div>
+        <div class="adm-card" data-name="UDP Flood Burst" data-scenario="ddos" style="--sc:#dc2626">
+          <div class="adm-card-top"><span class="adm-card-name">UDP Flood Burst</span><span class="adm-sev sc">CRITICAL</span></div>
+          <div class="adm-card-desc">High-volume UDP packet burst. Tests volumetric DDoS detection threshold.</div>
+          <div class="adm-card-payload">POST /api/events/inject {"scenario":"ddos"}</div>
+          <div class="adm-card-actions"><button class="adm-btn adm-btn-fire">⚡ Fire</button><button class="adm-btn adm-btn-copy">⧉ Copy</button></div>
+        </div>
+        <div class="adm-card" data-name="Lateral Movement" data-scenario="lateral_movement" style="--sc:#dc2626">
+          <div class="adm-card-top"><span class="adm-card-name">Lateral Movement</span><span class="adm-sev sc">CRITICAL</span></div>
+          <div class="adm-card-desc">Worm-like SMB lateral movement. Triggers network topology anomaly scoring.</div>
+          <div class="adm-card-payload">POST /api/events/inject {"scenario":"lateral_movement"}</div>
+          <div class="adm-card-actions"><button class="adm-btn adm-btn-fire">⚡ Fire</button><button class="adm-btn adm-btn-copy">⧉ Copy</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEB APP -->
+    <div class="adm-pane" id="adm-tab-webapp">
+      <div class="adm-cat">
+        <div class="adm-cat-label">Injection Attacks</div>
+        <div class="adm-card" data-name="SQL Injection" data-scenario="sql_injection" style="--sc:#dc2626">
+          <div class="adm-card-top"><span class="adm-card-name">SQL Injection — UNION</span><span class="adm-sev sc">CRITICAL</span></div>
+          <div class="adm-card-desc">UNION-based SQLi payload targeting login endpoint. Tests WAF response.</div>
+          <div class="adm-card-payload">POST /api/events/inject {"scenario":"sql_injection"}</div>
+          <div class="adm-card-actions"><button class="adm-btn adm-btn-fire">⚡ Fire</button><button class="adm-btn adm-btn-copy">⧉ Copy</button></div>
+        </div>
+        <div class="adm-card" data-name="XSS Stored Inject" data-scenario="xss" style="--sc:#f97316">
+          <div class="adm-card-top"><span class="adm-card-name">XSS Stored Inject</span><span class="adm-sev sh">HIGH</span></div>
+          <div class="adm-card-desc">Stored XSS via comment field. Validates input sanitisation alert rules.</div>
+          <div class="adm-card-payload">POST /api/events/inject {"scenario":"xss"}</div>
+          <div class="adm-card-actions"><button class="adm-btn adm-btn-fire">⚡ Fire</button><button class="adm-btn adm-btn-copy">⧉ Copy</button></div>
+        </div>
+      </div>
+      <div class="adm-cat">
+        <div class="adm-cat-label">Exfiltration</div>
+        <div class="adm-card" data-name="Data Exfiltration" data-scenario="data_exfiltration" style="--sc:#f97316">
+          <div class="adm-card-top"><span class="adm-card-name">Data Exfiltration</span><span class="adm-sev sh">HIGH</span></div>
+          <div class="adm-card-desc">Simulates large outbound data transfer to external IP. Tests DLP rules.</div>
+          <div class="adm-card-payload">POST /api/events/inject {"scenario":"data_exfiltration"}</div>
+          <div class="adm-card-actions"><button class="adm-btn adm-btn-fire">⚡ Fire</button><button class="adm-btn adm-btn-copy">⧉ Copy</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AUTH -->
+    <div class="adm-pane" id="adm-tab-auth">
+      <div class="adm-cat">
+        <div class="adm-cat-label">Brute Force</div>
+        <div class="adm-card" data-name="SSH Brute Force" data-scenario="brute_force_ssh" style="--sc:#f97316">
+          <div class="adm-card-top"><span class="adm-card-name">SSH Brute Force</span><span class="adm-sev sh">HIGH</span></div>
+          <div class="adm-card-desc">Rapid SSH password attempts. Validates threshold-based lockout alerts.</div>
+          <div class="adm-card-payload">POST /api/events/inject {"scenario":"brute_force_ssh"}</div>
+          <div class="adm-card-actions"><button class="adm-btn adm-btn-fire">⚡ Fire</button><button class="adm-btn adm-btn-copy">⧉ Copy</button></div>
+        </div>
+        <div class="adm-card" data-name="Credential Stuffing" data-scenario="brute_force_ssh" style="--sc:#eab308">
+          <div class="adm-card-top"><span class="adm-card-name">Credential Stuffing</span><span class="adm-sev sm">MED</span></div>
+          <div class="adm-card-desc">Distributed login attempts with leaked credentials. Tests distributed brute-force detection.</div>
+          <div class="adm-card-payload">POST /api/events/inject {"scenario":"brute_force_ssh","variant":"stuffing"}</div>
+          <div class="adm-card-actions"><button class="adm-btn adm-btn-fire">⚡ Fire</button><button class="adm-btn adm-btn-copy">⧉ Copy</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOG -->
+    <div class="adm-pane" id="adm-tab-log">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#8b949e;">Inject Activity Log</div>
+        <button id="adm-log-clear" style="font-size:9px;color:#8b949e;background:#161b22;border:1px solid #21262d;border-radius:5px;padding:4px 10px;cursor:pointer;">CLEAR</button>
+      </div>
+      <div class="adm-log" id="adm-log-area">
+        <div class="adm-log-entry"><span class="alt">[--:--:--]</span> <span class="ali">INFO</span> <span class="alm">Admin module loaded. Authenticate to begin.</span></div>
+      </div>
+    </div>
+
+  </div>
+  <div class="adm-footer">
+    <div class="adm-footer-stat">Fired: <span id="adm-stat-fired">0</span> &nbsp;|&nbsp; Copied: <span id="adm-stat-copied">0</span></div>
+    <button id="adm-lock-btn">🔒 Lock &amp; Exit</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="adm-toast"><span id="adm-toast-icon">✓</span><span id="adm-toast-msg">Done</span></div>
+
+<!-- Add Device Modal -->
+<div class="modal-overlay" id="deviceModal">
+  <div class="modal">
+    <h3>+ Connect New Device</h3>
+    <label>Device Type</label>
+    <select id="d-type">
+      <option value="cisco_iosxe">Cisco IOS XE (RESTCONF)</option>
+      <option value="fortigate" disabled>FortiGate (coming soon)</option>
+      <option value="paloalto" disabled>PaloAlto (coming soon)</option>
+    </select>
+    <label>Host / IP Address</label>
+    <input type="text" id="d-host" placeholder="192.168.1.1 or sandbox-iosxe-latest-1.cisco.com" />
+    <label>Username</label>
+    <input type="text" id="d-user" placeholder="admin" />
+    <label>Password</label>
+    <input type="password" id="d-pass" placeholder="password" />
+    <label>Port (default 443)</label>
+    <input type="number" id="d-port" value="443" />
+    <div class="device-status" id="d-status"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeDeviceModal()">Cancel</button>
+      <button class="btn-connect" onclick="connectDevice()">Connect</button>
+    </div>
+  </div>
+</div>
+
+<div id="connected-devices" class="devices-list" style="padding:6px 16px;"></div>
 
 <script>
   // When running under docker compose, nginx proxies /api/* to the backend service.
@@ -291,9 +465,9 @@
   function filterEvents(type, btn) {
     document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
-    if (type === "all")     renderEvents(allEvents);
+    if (type === "all")          renderEvents(allEvents);
     else if (type === "attacks") renderEvents(allEvents.filter(e => ["DENY","block","ALERT"].includes(e.action)));
-    else renderEvents(allEvents.filter(e => e.severity === type));
+    else                         renderEvents(allEvents.filter(e => e.severity === type));
   }
 
   // ── Chat ───────────────────────────────────────────────────────────────────
@@ -320,10 +494,8 @@
     const msg   = input.value.trim();
     if (!msg) return;
     input.value = "";
-
     addMessage(msg, "user");
     const loadingDiv = addMessage("Analyzing...", "bot loading");
-
     try {
       const r = await fetch(`${API}/api/chat`, {
         method: "POST",
@@ -389,16 +561,13 @@
     const port = parseInt(document.getElementById('d-port').value) || 443;
     const type = document.getElementById('d-type').value;
     const statusEl = document.getElementById('d-status');
-
     if (!host || !user || !pass) {
       statusEl.className = 'device-status err';
       statusEl.textContent = 'Please fill in all fields.';
       return;
     }
-
     statusEl.className = 'device-status loading';
     statusEl.textContent = 'Connecting to ' + host + '...';
-
     try {
       const res = await fetch(`${API}/api/device/connect`, {
         method: 'POST',
