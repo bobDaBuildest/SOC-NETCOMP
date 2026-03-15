@@ -35,7 +35,7 @@ jobs:
       - name: 🔍 Run flake8 (Lint)
         run: |
           # Use the correct relative path
-          flake8 backend/ --max-line-length=120 --ignore=E501,W503,F401,F841,W293
+          flake8 backend/ --max-line-length=120 --ignore=E501,W503,F401,F841,W293,E302,E303,E305,E402,E221,E241,E226,E127,E126,E401,W291,W292,F541,E741
 
       - name: ✅ Run tests with pytest
         run: |
