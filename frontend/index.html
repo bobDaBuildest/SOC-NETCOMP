@@ -70,6 +70,16 @@
     .inject-btn { background:#3d1a1a; border:1px solid #f85149; color:#f85149; padding:3px 10px; border-radius:4px; cursor:pointer; font-size:0.72rem; }
     .inject-btn:hover { background:#5a2020; }
 
+
+    /* ── Refresh button ── */
+    .refresh-btn { background:#21262d; border:1px solid #30363d; color:#c9d1d9; padding:4px 12px; border-radius:4px; cursor:pointer; font-size:0.78rem; display:flex; align-items:center; gap:5px; transition:background 0.2s; }
+    .refresh-btn:hover { background:#30363d; }
+    .refresh-btn.spinning .refresh-icon { display:inline-block; animation:spin 0.7s linear infinite; }
+    .refresh-btn:disabled { opacity:0.5; cursor:not-allowed; }
+    @keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+    .events-last-update { font-size:0.7rem; color:#8b949e; margin-left:6px; }
+    .new-event-flash { animation: flashIn 1s ease-out; }
+    @keyframes flashIn { from { background:#1f3a5f; } to { background:transparent; } }
     ::-webkit-scrollbar { width:4px; }
     ::-webkit-scrollbar-track { background:#0d1117; }
     ::-webkit-scrollbar-thumb { background:#30363d; border-radius:2px; }
@@ -151,7 +161,12 @@
   <div class="events-panel">
     <div class="panel-header">
       Security Events
-      <button class="filter-btn" onclick="loadEvents()" style="font-size:0.75rem">↻ Refresh</button>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <button class="refresh-btn" id="refresh-btn" onclick="manualRefresh()">
+          <span class="refresh-icon">↻</span> Refresh
+        </button>
+        <span class="events-last-update" id="events-last-update"></span>
+      </div>
     </div>
     <div class="filter-bar">
       <button class="filter-btn active" onclick="filterEvents('all', this)">All</button>
@@ -259,26 +274,55 @@
   }
 
   // ── Load Events ────────────────────────────────────────────────────────────
-  async function loadEvents() {
+  let _eventsAutoRefreshTimer = null;
+  let _lastEventCount = 0;
+
+  async function loadEvents(showSpinner = false) {
+    const btn = document.getElementById("refresh-btn");
+    if (showSpinner && btn) { btn.classList.add("spinning"); btn.disabled = true; }
     try {
       const r = await fetch(`${API}/api/events?limit=100`);
       const d = await r.json();
+      const newCount = d.events.length;
+      const hasNew = newCount > _lastEventCount && _lastEventCount > 0;
+      _lastEventCount = newCount;
       allEvents = d.events;
-      renderEvents(allEvents);
+      renderEvents(allEvents, hasNew);
+      // Update last-refresh timestamp
+      const ts = document.getElementById("events-last-update");
+      if (ts) ts.textContent = "Updated " + new Date().toLocaleTimeString();
     } catch(e) {
       document.getElementById("events-list").innerHTML =
         '<div style="padding:24px;text-align:center;color:#f85149">⚠️ Cannot connect to backend</div>';
+    } finally {
+      if (showSpinner && btn) { btn.classList.remove("spinning"); btn.disabled = false; }
     }
   }
 
-  function renderEvents(events) {
+  function manualRefresh() {
+    loadEvents(true);   // spin on manual click
+    loadKPIs();
+  }
+
+  function startAutoRefresh(intervalMs = 10000) {
+    if (_eventsAutoRefreshTimer) clearInterval(_eventsAutoRefreshTimer);
+    _eventsAutoRefreshTimer = setInterval(() => {
+      loadEvents(false);  // silent background refresh
+      loadKPIs();
+    }, intervalMs);
+  }
+
+  function renderEvents(events, flashNew = false) {
     const list = document.getElementById("events-list");
     if (!events.length) {
       list.innerHTML = '<div style="padding:24px;text-align:center;color:#8b949e">No events found</div>';
       return;
     }
-    list.innerHTML = events.map(e => `
-      <div class="event-row" onclick="askAboutEvent('${e.device}', '${e.event_type}', '${e.src_ip}')">
+    // Preserve scroll position
+    const prevScroll = list.scrollTop;
+    list.innerHTML = events.map((e, i) => `
+      <div class="event-row ${flashNew && i === 0 ? 'new-event-flash' : ''}"
+           onclick="askAboutEvent('${e.device}', '${e.event_type}', '${e.src_ip}')">
         <span class="ts">${e.timestamp.split("T")[1]}</span>
         <span class="ip">${e.src_ip || "—"}</span>
         <span style="font-size:0.75rem;color:#8b949e">${e.device?.split("-").slice(0,2).join("-") || "—"}</span>
@@ -286,6 +330,7 @@
         <span class="badge ${e.severity}">${e.severity}</span>
       </div>
     `).join("");
+    list.scrollTop = prevScroll;
   }
 
   function filterEvents(type, btn) {
