@@ -73,8 +73,10 @@
     ::-webkit-scrollbar { width:4px; }
     ::-webkit-scrollbar-track { background:#0d1117; }
     ::-webkit-scrollbar-thumb { background:#30363d; border-radius:2px; }
-  
-    /* Device Modal */
+
+    /* ── Add Device Modal ── */
+    .add-device-btn { background:#21262d; border:1px solid #30363d; color:#58a6ff; padding:4px 10px; border-radius:6px; cursor:pointer; font-size:0.75rem; margin-left:8px; }
+    .add-device-btn:hover { background:#30363d; }
     .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1000; justify-content:center; align-items:center; }
     .modal-overlay.active { display:flex; }
     .modal { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:28px; width:420px; max-width:95vw; }
@@ -84,20 +86,16 @@
     .modal input:focus, .modal select:focus { outline:none; border-color:#58a6ff; }
     .modal-actions { display:flex; gap:10px; margin-top:22px; }
     .modal-actions button { flex:1; padding:9px; border:none; border-radius:6px; cursor:pointer; font-size:0.85rem; font-weight:600; }
+    .btn-cancel  { background:#21262d; color:#c9d1d9; }
     .btn-connect { background:#238636; color:#fff; }
     .btn-connect:hover { background:#2ea043; }
-    .btn-cancel { background:#21262d; color:#8b949e; border:1px solid #30363d !important; }
-    .btn-cancel:hover { background:#30363d; }
-    .device-status { margin-top:14px; padding:10px; border-radius:6px; font-size:0.82rem; display:none; }
-    .device-status.ok { background:#0d2818; border:1px solid #238636; color:#3fb950; display:block; }
-    .device-status.err { background:#2d0f0f; border:1px solid #f85149; color:#f85149; display:block; }
-    .device-status.loading { background:#0d1117; border:1px solid #58a6ff; color:#58a6ff; display:block; }
-    .add-device-btn { background:#21262d; border:1px solid #30363d; color:#58a6ff; padding:6px 14px; border-radius:6px; cursor:pointer; font-size:0.8rem; margin-left:10px; }
-    .add-device-btn:hover { background:#30363d; }
-    .devices-list { margin-top:8px; }
-    .device-tag { display:inline-block; background:#0d2818; border:1px solid #238636; color:#3fb950; border-radius:4px; padding:2px 8px; font-size:0.75rem; margin:2px; }
-    .device-tag.unreachable { background:#2d0f0f; border-color:#f85149; color:#f85149; }
-</style>
+    .device-status { margin-top:12px; font-size:0.8rem; padding:6px 10px; border-radius:4px; }
+    .device-status.ok      { background:#1a2e1a; color:#3fb950; }
+    .device-status.err     { background:#3d1a1a; color:#f85149; }
+    .device-status.loading { background:#1a1f2e; color:#58a6ff; }
+    .device-tag { display:inline-block; background:#1f3a5f; color:#58a6ff; border:1px solid #1f6feb; border-radius:4px; padding:3px 10px; font-size:0.75rem; margin:2px; }
+    .device-tag.unreachable { background:#3d1a1a; color:#f85149; border-color:#f85149; }
+  </style>
 </head>
 <body>
 
@@ -108,15 +106,44 @@
 
 <!-- KPI Bar -->
 <div class="kpi-bar" id="kpi-bar">
-  <div class="kpi"><div class="k-label">Total Events</div><div class="k-value" id="k-total">—</div></div>
-  <div class="kpi danger"><div class="k-label">Attack Events</div><div class="k-value" id="k-attacks">—</div></div>
-  <div class="kpi warn"><div class="k-label">Anomaly Rate</div><div class="k-value" id="k-rate">—</div></div>
-  <div class="kpi danger"><div class="k-label">Critical Events</div><div class="k-value" id="k-critical">—</div></div>
-  <div class="kpi good"><div class="k-label">Blocked</div><div class="k-value" id="k-blocked">—</div></div>
+  <div class="kpi"><div class="k-label">Total Events</div><div class="k-value" id="kpi-total-events">—</div></div>
+  <div class="kpi danger"><div class="k-label">Attack Events</div><div class="k-value" id="kpi-attack-events">—</div></div>
+  <div class="kpi warn"><div class="k-label">Anomaly Rate</div><div class="k-value" id="kpi-anomaly-rate">—</div></div>
+  <div class="kpi danger"><div class="k-label">Critical Events</div><div class="k-value" id="kpi-critical-events">—</div></div>
+  <div class="kpi good"><div class="k-label">Blocked</div><div class="k-value" id="kpi-blocked">—</div></div>
   <div class="kpi"><div class="k-label">MTTD</div><div class="k-value" id="k-mttd">—</div></div>
   <div class="kpi"><div class="k-label">MTTR</div><div class="k-value" id="k-mttr">—</div></div>
-  <div class="kpi"><div class="k-label">Active Devices <button class="add-device-btn" onclick="openDeviceModal()">+ Add Device</button></div><div class="k-value" id="k-devices">—</div></div>
+  <div class="kpi"><div class="k-label">Active Devices <button class="add-device-btn" onclick="openDeviceModal()">+ Add Device</button></div><div class="k-value" id="kpi-active-devices">—</div></div>
 </div>
+<div style="padding:8px 24px; font-size:0.85rem; color:#c9d1d9;" id="firewall-status">Firewall status: loading…</div>
+
+
+<!-- Add Device Modal -->
+<div class="modal-overlay" id="deviceModal">
+  <div class="modal">
+    <h3>+ Connect New Device</h3>
+    <label>Device Type</label>
+    <select id="d-type">
+      <option value="cisco_iosxe">Cisco IOS XE (RESTCONF)</option>
+      <option value="fortigate" disabled>FortiGate (coming soon)</option>
+      <option value="paloalto" disabled>PaloAlto (coming soon)</option>
+    </select>
+    <label>Host / IP Address</label>
+    <input type="text" id="d-host" placeholder="192.168.1.1 or sandbox-iosxe-latest-1.cisco.com" />
+    <label>Username</label>
+    <input type="text" id="d-user" placeholder="admin" />
+    <label>Password</label>
+    <input type="password" id="d-pass" placeholder="password" />
+    <label>Port (default 443)</label>
+    <input type="number" id="d-port" value="443" />
+    <div class="device-status" id="d-status"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeDeviceModal()">Cancel</button>
+      <button class="btn-connect" onclick="connectDevice()">Connect</button>
+    </div>
+  </div>
+</div>
+<div id="connected-devices" style="padding:4px 24px;"></div>
 
 <div class="layout">
 
@@ -180,26 +207,55 @@
 </div>
 
 <script>
-  const API = "http://localhost:8000";
+  // When running under docker compose, nginx proxies /api/* to the backend service.
+  // If opened as a file (file://), fall back to localhost:
+  // Always use localhost:8000 — works both when opened as file:// and via http://
+  const API = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+    ? "http://localhost:8000"
+    : "";
   let allEvents = [];
 
-  // ── Load KPIs ──────────────────────────────────────────────────────────────
+  // ── Load KPIs — fetches from /api/kpis (EventStream + SQLite blocked) ───
   async function loadKPIs() {
     try {
       const r = await fetch(`${API}/api/kpis`);
-      const d = await r.json();
-      document.getElementById("k-total").textContent    = d.total_events;
-      document.getElementById("k-attacks").textContent  = d.attack_events;
-      document.getElementById("k-rate").textContent     = d.anomaly_rate + "%";
-      document.getElementById("k-critical").textContent = d.critical_events;
-      document.getElementById("k-blocked").textContent  = d.blocked_attacks;
-      document.getElementById("k-mttd").textContent     = d.mttd_minutes + "m";
-      document.getElementById("k-mttr").textContent     = d.mttr_minutes + "m";
-      document.getElementById("k-devices").textContent  = d.active_devices;
-      document.getElementById("last-update").textContent = "Updated: " + new Date(d.last_updated).toLocaleTimeString();
+      applyKpis(await r.json());
     } catch(e) {
       document.getElementById("last-update").textContent = "⚠️ Backend offline";
     }
+  }
+
+  async function loadFirewalls() {
+    try {
+      const r = await fetch(`${API}/api/firewalls`);
+      const d = await r.json();
+      const status = document.getElementById("firewall-status");
+      if (!d.active_firewalls?.length) {
+        status.textContent = "Firewall status: none active";
+        return;
+      }
+      const active = d.active_firewalls.join(", ");
+      const blocked = (d.blocked_ips || []).length;
+      status.textContent = `Firewall(s) active: ${active} (blocking ${blocked} IP${blocked === 1 ? "" : "s"})`;
+    } catch (e) {
+      document.getElementById("firewall-status").textContent = "Firewall status: unable to reach backend";
+    }
+  }
+
+
+
+  // ── Helper: apply KPI object to DOM (single source of truth) ──────────────
+  function applyKpis(kpis) {
+    if (!kpis) return;
+    if (kpis.total_events    !== undefined) document.getElementById("kpi-total-events").textContent   = kpis.total_events;
+    if (kpis.attack_events   !== undefined) document.getElementById("kpi-attack-events").textContent  = kpis.attack_events;
+    if (kpis.anomaly_rate    !== undefined) document.getElementById("kpi-anomaly-rate").textContent    = kpis.anomaly_rate + "%";
+    if (kpis.critical_events !== undefined) document.getElementById("kpi-critical-events").textContent = kpis.critical_events;
+    if (kpis.blocked_attacks !== undefined) document.getElementById("kpi-blocked").textContent         = kpis.blocked_attacks;
+    if (kpis.mttd_minutes    !== undefined) document.getElementById("k-mttd").textContent              = kpis.mttd_minutes + "m";
+    if (kpis.mttr_minutes    !== undefined) document.getElementById("k-mttr").textContent              = kpis.mttr_minutes + "m";
+    if (kpis.active_devices  !== undefined) document.getElementById("kpi-active-devices").textContent  = kpis.active_devices;
+    if (kpis.last_updated) document.getElementById("last-update").textContent = "Updated: " + new Date(kpis.last_updated).toLocaleTimeString();
   }
 
   // ── Load Events ────────────────────────────────────────────────────────────
@@ -277,7 +333,11 @@
       const d = await r.json();
       loadingDiv.remove();
       addMessage(d.response, "bot");
-      loadKPIs();
+
+      // d.stats always returned by /api/chat — apply instantly (no Refresh needed)
+      if (d.stats) applyKpis(d.stats);
+
+      // Refresh events list so blocked IP appears in Security Events
       loadEvents();
     } catch(e) {
       loadingDiv.remove();
@@ -310,11 +370,8 @@
     }
   }
 
-  // ── Init ───────────────────────────────────────────────────────────────────
-  loadKPIs();
-  loadEvents();
-  setInterval(() => { loadKPIs(); loadEvents(); }, 30000); // Auto-refresh every 30s
 
+  // ── Device Modal ──────────────────────────────────────────────────────────
   function openDeviceModal() {
     document.getElementById('deviceModal').classList.add('active');
     document.getElementById('d-status').className = 'device-status';
@@ -343,20 +400,19 @@
     statusEl.textContent = 'Connecting to ' + host + '...';
 
     try {
-      const res = await fetch('/api/device/connect', {
+      const res = await fetch(`${API}/api/device/connect`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ host, username: user, password: pass, port, device_type: type })
       });
       const data = await res.json();
-
       if (data.status === 'connected') {
         statusEl.className = 'device-status ok';
         statusEl.textContent = '[OK] Connected to ' + data.hostname + ' (' + data.host + ')';
-        setTimeout(() => { closeDeviceModal(); loadConnectedDevices(); }, 1500);
+        setTimeout(() => { closeDeviceModal(); loadConnectedDevices(); loadKPIs(); }, 1500);
       } else {
         statusEl.className = 'device-status err';
-        statusEl.textContent = '[ERROR] Cannot connect to ' + host + '. Check credentials and RESTCONF is enabled.';
+        statusEl.textContent = '[ERROR] Cannot connect to ' + host + '. Check credentials / RESTCONF enabled.';
       }
     } catch(e) {
       statusEl.className = 'device-status err';
@@ -366,7 +422,7 @@
 
   async function loadConnectedDevices() {
     try {
-      const res = await fetch('/api/devices');
+      const res = await fetch(`${API}/api/devices`);
       const data = await res.json();
       const el = document.getElementById('connected-devices');
       if (data.devices && data.devices.length > 0) {
@@ -378,43 +434,12 @@
     } catch(e) {}
   }
 
-  // Load connected devices on startup
+  // ── Init ───────────────────────────────────────────────────────────────────
+  loadKPIs();
+  loadEvents();
+  loadFirewalls();
   loadConnectedDevices();
+  setInterval(() => { loadKPIs(); loadEvents(); loadFirewalls(); }, 30000); // Auto-refresh every 30s
 </script>
-
-<!-- Add Device Modal -->
-<div class="modal-overlay" id="deviceModal">
-  <div class="modal">
-    <h3>+ Connect New Device</h3>
-
-    <label>Device Type</label>
-    <select id="d-type">
-      <option value="cisco_iosxe">Cisco IOS XE (RESTCONF)</option>
-      <option value="fortigate" disabled>FortiGate (coming soon)</option>
-      <option value="paloalto" disabled>PaloAlto (coming soon)</option>
-    </select>
-
-    <label>Host / IP Address</label>
-    <input type="text" id="d-host" placeholder="192.168.1.1 or sandbox-iosxe-latest-1.cisco.com" />
-
-    <label>Username</label>
-    <input type="text" id="d-user" placeholder="admin" />
-
-    <label>Password</label>
-    <input type="password" id="d-pass" placeholder="password" />
-
-    <label>Port (default 443)</label>
-    <input type="number" id="d-port" value="443" />
-
-    <div class="device-status" id="d-status"></div>
-
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeDeviceModal()">Cancel</button>
-      <button class="btn-connect" onclick="connectDevice()">Connect</button>
-    </div>
-  </div>
-</div>
-
-<div id="connected-devices" class="devices-list" style="padding:6px 16px;"></div>
 </body>
 </html>
