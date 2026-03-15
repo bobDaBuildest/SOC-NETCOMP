@@ -1,0 +1,38 @@
+[
+  {
+    "id": "syn_flood",
+    "pattern": "SYN Flood",
+    "title": "SYN Flood Attack",
+    "description": "A high-volume TCP SYN packet flood aimed at exhausting server connection tables.",
+    "mitigation_steps": [
+      "Implement rate limiting/throttling on SYN packets at the edge firewall or router.",
+      "Enable SYN cookies on affected servers to protect against half-open connections.",
+      "Block or rate-limit traffic from suspicious source IPs using access control lists.",
+      "Monitor for unusual spikes in SYN packets and correlate with other anomaly indicators."
+    ]
+  },
+  {
+    "id": "data_exfiltration",
+    "pattern": "Data Exfiltration",
+    "title": "Data Exfiltration",
+    "description": "Unusually large or unauthorized data transfers that may indicate sensitive data is being removed from the network.",
+    "mitigation_steps": [
+      "Identify the source and destination endpoints involved in the transfer and isolate the affected systems.",
+      "Review user and service account activity for privilege escalation or misuse.",
+      "Implement data loss prevention (DLP) policies and monitor for sensitive file transfers.",
+      "Block or rate-limit suspicious destinations and enforce strict egress filtering."
+    ]
+  },
+  {
+    "id": "suspicious_protocol",
+    "pattern": "Suspicious Protocol",
+    "title": "Suspicious Protocol Usage",
+    "description": "Use of non-standard or unexpected protocols that may indicate tunneling, covert channels, or unauthorized services.",
+    "mitigation_steps": [
+      "Identify which hosts are using the suspicious protocol and determine if it is allowed by policy.",
+      "Block or restrict the protocol at network boundaries if it is not required.",
+      "Conduct packet inspection to validate whether the traffic is legitimate or encoded/masked.",
+      "Update IDS/IPS signatures and monitoring rules to detect further usage of the protocol."
+    ]
+  }
+]

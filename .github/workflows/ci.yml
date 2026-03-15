@@ -37,7 +37,7 @@ jobs:
       - name: ✅ Run tests with pytest
         run: |
           export PYTHONPATH=$(pwd)/backend
-          python -m pytest tests/ -v --tb=short --asyncio-mode=auto
+          python -m pytest tests/ -v --tb=short --asyncio-mode=auto -p no:cacheprovider
 
       - name: 📊 Upload test results
         if: always()
